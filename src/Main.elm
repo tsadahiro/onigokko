@@ -4,6 +4,9 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Svg exposing (Svg)
+import Svg.Attributes as Attr
+import Svg.Events as Ev
 import Json.Decode as D
 import Html.Events.Extra.Pointer as Pointer
 import Time
