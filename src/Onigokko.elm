@@ -65,6 +65,7 @@ type Msg = KeyPressed Direction
          | NameChanged String
          | Join
          | RandomPlayerGenerated Player
+         | KeyDown Int
            
 type Direction = Left
                | Right
@@ -110,7 +111,12 @@ update msg model =
             , Cmd.none
             )
         NameChanged name ->
-            ( { model | name = name }
+            let
+                setName: Player -> String -> Player
+                setName player n =
+                    {player | name = n}
+            in
+            ( { model | me = setName model.me name }
             , Cmd.none
             )
         Join ->
@@ -127,6 +133,36 @@ update msg model =
                  }
                 ,moved model.me
                 )
+        KeyDown keycode ->
+            let
+                dummy = Debug.log "key" keycode
+            in
+                case keycode of
+                    39 -> 
+                        let
+                            newMe = turnRight model.me
+                        in
+                            ({model| me = newMe}
+                             , moved newMe)
+                    37 ->
+                        let
+                            newMe = turnLeft model.me
+                        in
+                            ({model| me = newMe}
+                             , moved newMe)
+                    38 ->
+                        let
+                            newMe = moveForward model.me
+                        in
+                            ({model| me = newMe}
+                            , moved newMe)
+                    40 ->
+                        let
+                            newMe = moveBackward model.me
+                        in
+                            ({model| me = newMe}
+                             , moved newMe)
+                    _ -> (model, Cmd.none)
         KeyPressed dir ->
             let
                 dummy = Debug.log "" dir
@@ -187,7 +223,8 @@ moveBackward p =
             
 view: Model -> Html Msg
 view model =
-    div [align "center"]
+    div [align "center"
+        ]
     (case model.me.id of
          Nothing -> [input
                          [ type_ "text"
@@ -305,16 +342,18 @@ view model =
                      {x=Tuple.first event.pointer.offsetPos
                      ,y=Tuple.second event.pointer.offsetPos}
              in
-                 [Scene3d.sunny
-                      { camera = camera
-                      , clipDepth = Length.centimeters 0.5
-                      , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
-                      , background = Scene3d.transparentBackground
-                      , entities = plane::(List.map playerView model.others)
-                      , shadows = True
-                      , upDirection = Direction3d.z
-                      , sunlightDirection = Direction3d.yz (Angle.degrees -120)
-                      }
+                 [div[onKeyDown KeyDown]
+                      [input[onKeyDown KeyDown, autofocus True][text "ここをタイプ"]]
+                 , Scene3d.sunny
+                        { camera = camera
+                        , clipDepth = Length.centimeters 0.5
+                        , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
+                        , background = Scene3d.transparentBackground
+                        , entities = plane::(List.map playerView model.others)
+                        , shadows = True
+                        , upDirection = Direction3d.z
+                        , sunlightDirection = Direction3d.yz (Angle.degrees -120)
+                        }
                  ]
          )
 
@@ -409,7 +448,7 @@ subscriptions model =
     Sub.batch
         [othersMove OthersMoved
         ,skywayId IdDefined
-        ,Browser.Events.onKeyPress keyDecoder 
+        --,Browser.Events.onKeyPress keyDecoder 
         ]
 
 ifIsEnter : msg -> D.Decoder msg
@@ -417,3 +456,6 @@ ifIsEnter msg =
   D.field "key" D.string
     |> D.andThen (\key -> if key == "Enter" then D.succeed msg else D.fail "some other key")
         
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+  on "keydown" (D.map tagger keyCode)
