@@ -1,0 +1,183 @@
+module ThreeD exposing (..)
+
+import Random
+import Angle
+import Camera3d
+import Length exposing (Meters, meters)
+import Color
+import Direction3d exposing (Direction3d)
+import Html exposing (Html)
+import Html.Attributes as Atts
+import Html.Events as Events
+import Length
+import Pixels
+import Point3d exposing (Point3d)
+import Sphere3d
+import Cylinder3d
+import Triangle3d
+import Axis3d
+import Vector3d exposing (Vector3d)
+import Scene3d
+import Scene3d.Material as Material
+import Viewpoint3d
+import Browser
+import Browser.Events
+import Time
+import Html.Events.Extra.Pointer as Pointer
+import Json.Decode as D
+
+main = Browser.element {init = init
+                        ,update = update
+                        ,view = view
+                        ,subscriptions = subscriptions}
+
+type WorldCoordinates = WorldCoordinates
+
+type alias Model = {angle: Float
+                   }
+    
+type Msg = KeyPressed Direction
+
+type Direction = Left
+               | Right
+               | Other
+                
+
+init: () -> (Model, Cmd Msg)
+init _ =
+    ({angle=0}
+    , Cmd.none)
+
+
+update: Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    case msg of
+        KeyPressed dir ->
+            let
+                dummy = Debug.log "" dir
+            in
+                case dir of
+                    Left -> ({model| angle = model.angle+0.1}
+                            , Cmd.none)
+                    Right -> ({model| angle = model.angle-0.1}
+                            , Cmd.none)
+                    _ -> (model, Cmd.none)
+
+view: Model -> Html Msg
+view model =
+   let
+        material =
+            Material.nonmetal
+                { baseColor = Color.blue
+                , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                }
+        materialWhite =
+            Material.nonmetal
+                { baseColor = Color.white
+                , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                }
+
+        materialBlack =
+            Material.nonmetal
+                { baseColor = Color.black
+                , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                }
+                
+        materialGreen =
+            Material.nonmetal
+                { baseColor = Color.green
+                , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                }
+        materialDart =
+            Material.nonmetal
+                { baseColor = Color.rgba 0.4 0.6 0.3 0.8
+                , roughness = 0.1 -- varies from 0 (mirror-like) to 1 (matte)
+                }
+
+        plane = Scene3d.quad materialDart
+                (Point3d.meters 100 100 0)
+                (Point3d.meters -100 100 0)
+                (Point3d.meters -100 -100 0)
+                (Point3d.meters 100 -100 0)
+
+        cyl = Scene3d.cylinder material
+              <| Cylinder3d.along Axis3d.z
+                  { start = Length.meters 0
+                  , end = Length.meters 1.5
+                  , radius = Length.meters 1
+                  }
+                  
+        left = Scene3d.sphere materialWhite
+               <| Sphere3d.atPoint
+                   (Point3d.meters (0.8*(cos (pi*model.angle+(-pi/10))))
+                        (0.8*(sin (pi*model.angle+(-pi/10)) )) 1)
+                   (Length.meters 0.3)
+        right = Scene3d.sphere materialWhite
+               <| Sphere3d.atPoint
+                   (Point3d.meters (0.8*(cos (pi*model.angle+(pi/10))))
+                        (0.8*(sin (pi*model.angle+(pi/10)))) 1)
+                   (Length.meters 0.3)
+        lb = Scene3d.sphere materialBlack
+               <| Sphere3d.atPoint
+                   (Point3d.meters (0.9*(cos (pi*model.angle+(-pi/10))))
+                        (0.9*(sin (pi*model.angle+(-pi/10)))) 1)
+                   (Length.meters 0.22)
+        rb = Scene3d.sphere materialBlack
+               <| Sphere3d.atPoint
+                   (Point3d.meters (0.9*(cos (pi*model.angle+(pi/10))))
+                        (0.9*(sin (pi*model.angle+(pi/10)))) 1)
+                   (Length.meters 0.22)
+                       
+                       
+
+        robot = Scene3d.group [cyl,left,right,lb,rb]
+                    
+        -- Define a camera as usual
+        camera =
+            Camera3d.perspective
+                { viewpoint =
+                    Viewpoint3d.lookAt
+                        { focalPoint = (Point3d.meters 0 0 1.5)
+                        , eyePoint = (Point3d.meters 10 10 1 )
+                        , upDirection = Direction3d.positiveZ
+                        }
+                , verticalFieldOfView = Angle.degrees 30
+                }
+        relativePos event =
+            {x=Tuple.first event.pointer.offsetPos
+            ,y=Tuple.second event.pointer.offsetPos}
+    in
+        Html.div[Atts.align "center"
+                ]
+            [Scene3d.sunny
+                 { camera = camera
+                 , clipDepth = Length.centimeters 0.5
+                 , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
+                 , background = Scene3d.transparentBackground
+                 , entities = [plane,robot]  
+                 , shadows = True
+                 , upDirection = Direction3d.z
+                 , sunlightDirection = Direction3d.yz (Angle.degrees -120)
+                 }
+            ]
+
+keyDecoder : D.Decoder Msg
+keyDecoder =
+  D.map toDirection (D.field "key" D.string)
+
+toDirection : String -> Msg
+toDirection string =
+    let
+        dummy = Debug.log "" "pressed"
+    in
+        case string of
+            "l" ->
+                KeyPressed Left
+            "r" ->
+                KeyPressed Right
+            _ ->
+                KeyPressed Other
+          
+subscriptions: Model -> Sub Msg
+subscriptions model =
+    Browser.Events.onKeyPress keyDecoder 
