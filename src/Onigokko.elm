@@ -26,6 +26,7 @@ import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as D
 import Random
 import Time
+import Dict
 
 main = Browser.element {init = init
                         ,update = update

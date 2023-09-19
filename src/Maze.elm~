@@ -1,0 +1,49 @@
+module Maze exposing (..)
+
+import Browser
+import Dict
+import Random
+import Html exposing (Html)
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
+import Svg.Events exposing (..)
+
+main = Browser.element {init = init
+                       ,update = update
+                       ,view = view
+                       ,subscriptions = subscriptions
+                       }
+
+type alias Maze = Dict (Int, Int) (Int, Int)
+       
+type alias Model = {maze: Maze}
+
+type Direction = North
+               | South
+               | East
+               | West
+    
+type Msg = NextGen Direction
+       
+
+init: () -> (Model, Cmd Msg)
+init _ = ({maze = Dict.empty}
+         ,Random.generates
+             NextGen (Random.uniform North [South, East, West])
+         )
+
+update: Msg -> Model -> (Model, Cmd Msg)
+update mst model =
+    (model, Cmd.none)
+
+view: Model -> Html Msg
+view model =
+    Html.div[]
+        []
+
+subscriptions: Model -> Sub Msg
+subscriptions model =
+    Sub.none
+      
+    
+          
