@@ -13,7 +13,7 @@ const token = new SkyWayAuthToken({
   exp: nowInSec() + 60 * 60 * 24,
   scope: {
     app: {
-      id: '489b7100-9ce2-4b50-ac74-1b143ef84667',
+	id: '489b7100-9ce2-4b50-ac74-1b143ef84667',
       turn: true,
       actions: ['read'],
       channels: [
@@ -62,7 +62,7 @@ const token = new SkyWayAuthToken({
 	if (results.multiHandLandmarks) {
 	    if (results.multiHandLandmarks.length == 2) {
 		marks = results.multiHandLandmarks[0].concat(results.multiHandLandmarks[1]);
-		//app.ports.handsReceiver.send(marks);
+		app.ports.handsReceiver.send(marks);
 		results.multiHandLandmarks.forEach(marks => {
 		    for (const landmarks of results.multiHandLandmarks) {
 			drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,

@@ -14,7 +14,22 @@ type Msg = RoomChanged String
          | KingyoMoved (List Kingyo)
          | KingyoCaught {kingyos:(List Kingyo), points:Int, id:String}
          | Tick Time.Posix
+         | NextGen Direction
+           
+type alias Maze = Dict (Int, Int) (Int, Int)
+       
+type alias MazeModel = {maze: Maze
+                   ,outOfTree: (List (Int, Int))
+                   ,currentPos: (Int, Int)
+                   ,lerwStart: (Int, Int)
+                   }
 
+type Direction = North
+               | South
+               | East
+               | West
+    
+           
 type alias Player = {name: String
                     ,x: Float
                     ,y: Float

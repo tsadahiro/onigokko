@@ -145,7 +145,44 @@ addToMaze dir model =
         }
 
         
-            
+dual: Maze -> Dict (Int, Int) (List Direction)
+dual primal =
+    let
+        dualV = vertexList (mazeSize+1)
+        edges: (Int, Int) -> List Direction
+        edges (x,y) =
+            if (x,y) == (-mazeSize, -mazeSize) then
+                []
+            else if x == (-mazeSize) then
+                     [South]
+                 else if y == (-mazeSize) then
+                          [West]
+                      else
+                          [South, West]
+        initialEdges : Dict (Int, Int) (List Direction)
+        initialEdges =
+            List.foldl (\v dict -> Dict.insert v (edges v) dict ) (Dict.empty) dualV
+        remove: (Int, Int) -> (Int, Int) -> Dict (Int,Int) (List Direction) -> Dict (Int,Int) (List Direction)
+        remove (fromX, fromY) (toX, toY) dict =
+            let
+                dx = toX-fromX
+                dy = toY-fromY
+            in
+                case (dx,dy) of
+                    (-1,0) ->
+                        let
+                            leftAbove = Maybe.withDefault [] <| Dict.get (fromX, (fromY+1)) dict
+                            leftBelow = Maybe.withDefault [] <| Dict.get (fromX, (fromY-1)) dict
+                        in
+                            Dict.insert (fromX, (fromY-1)) (List.filter (\dir -> dir /= North) leftBelow) dict <|
+                            Dict.insert (fromX, (fromY+1)) (List.filter (\dir -> dir /= South) leftAbove) dict
+                    _ ->
+                        dict
+    in
+        Dict.foldl (\k v dict -> remove k v dict) initialEdges primal
+
+
+    
 
 view: Model -> Html Msg
 view model =
@@ -161,7 +198,7 @@ view model =
 mazeView: Model -> List (Html Msg)
 mazeView model =
     let
-        unit = 50
+        unit = 20
     in
         Dict.foldl
             (\(fromX, fromY) (toX, toY) list ->

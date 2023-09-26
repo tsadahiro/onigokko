@@ -26,7 +26,7 @@ import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as D
 import Random
 import Time
-import Dict
+import Dict exposing (Dict)
 
 main = Browser.element {init = init
                         ,update = update
@@ -41,6 +41,7 @@ port moved : Player  ->  Cmd msg
 -- receive
 port skywayId : ({id:String, num:Int} -> msg) -> Sub msg
 port othersMove : (Player -> msg) -> Sub msg
+port handsReceiver : (List {x:Float, y:Float, z:Float} -> msg) -> Sub msg
        
 type WorldCoordinates = WorldCoordinates
 
@@ -57,6 +58,7 @@ type alias Model = {me: Player
                    ,room: String
                    ,name: String
                    ,host: Bool
+                   ,mazeData: MazeModel
                    }
     
 type Msg = KeyPressed Direction
@@ -67,6 +69,8 @@ type Msg = KeyPressed Direction
          | Join
          | RandomPlayerGenerated Player
          | KeyDown Int
+         | Hands (List {x:Float, y:Float, z:Float})
+         | NextGen MazeDirection
            
 type Direction = Left
                | Right
@@ -74,6 +78,21 @@ type Direction = Left
                | Forward
                | Backward
 
+type alias Maze = Dict (Int, Int) (Int, Int)
+       
+type alias MazeModel = {maze: Maze
+                       ,outOfTree: (List (Int, Int))
+                       ,currentPos: (Int, Int)
+                       ,lerwStart: (Int, Int)
+                       }
+
+type MazeDirection = North
+                   | South
+                   | East
+                   | West
+
+
+mazeSize = 5                     
 init: () -> (Model, Cmd Msg)
 init _ =
     ({me = {id=Nothing,name="",x=5,y=5,theta=0,oni=False}
@@ -81,6 +100,11 @@ init _ =
      ,name = ""
      ,host = False
      ,others = []
+     ,mazeData = {maze = Dict.empty
+                 ,outOfTree = vertexList mazeSize
+                 ,currentPos = (0,0)
+                 ,lerwStart = (0,0)
+                 }
      }
     ,Random.generate RandomPlayerGenerated randomPlayer)
 
@@ -132,7 +156,10 @@ update msg model =
                 ({model | me = setId model.me info.id
                  ,host = (info.num == 1)
                  }
-                ,moved model.me
+                , if info.num == 1 then
+                      Random.generate NextGen (nextDir (0,0) mazeSize)
+                  else
+                      moved model.me
                 )
         KeyDown keycode ->
             let
@@ -199,7 +226,109 @@ update msg model =
                 players = Debug.log "others" <| other::(List.filter (\player -> player.id /= other.id) model.others)
             in
                 ({model|others=players}, Cmd.none)
+        NextGen dir ->
+            let
+                newMaze = addToMaze dir model.mazeData
+                --dummy = Debug.log "dir" (dir,newModel.currentPos)
+            in
+                ({model | mazeData = newMaze}
+                ,if (List.length newMaze.outOfTree) > 0 then
+                     Random.generate
+                         NextGen (nextDir newMaze.currentPos mazeSize)
+                 else
+                     let
+                         dummy = Debug.log "completed" <| model.mazeData.maze
+                     in
+                         moved model.me
+                )
+        Hands points ->
+            let
+                dummy = Debug.log "" points
+            in
+                (model, Cmd.none)
+                    
+nextDir: (Int, Int) -> Int -> Random.Generator MazeDirection
+nextDir (x,y) size =
+    let
+        east = if x < size then
+                   [East]
+               else
+                   []
+        west = if x > (-size) then
+                   [West]
+               else
+                   []
+        north = if y < size then
+                   [North]
+               else
+                   []
+        south = if y > (-size) then
+                   [South]
+               else
+                   []
+        pos = (x,y) 
+        dirs = List.concat [east, west, south, north]
+    in
+        Random.uniform
+            (Maybe.withDefault West <| List.head dirs)
+            (List.drop 1 dirs)
 
+vertexList: Int -> List (Int, Int)
+vertexList s =
+    List.filter (\(x,y) -> x /= s || y /= s) <|
+        List.concat <|
+            List.map (\x ->
+                          List.map (\y -> (x,y)) (List.range (-s) s)
+                     )
+                (List.range (-s) s)
+
+addToMaze: MazeDirection -> MazeModel -> MazeModel
+addToMaze dir model =
+    let
+        x = Tuple.first model.currentPos
+        y = Tuple.second model.currentPos
+        next = case dir of
+                   North -> (x, y+1)
+                   South -> (x, y-1)
+                   East -> (x+1, y)
+                   West -> (x-1, y)
+        newMaze = Dict.insert model.currentPos next model.maze
+                  
+        delete: (Int,Int) -> Maze -> List (Int, Int) -> List (Int, Int)
+        delete p maze outOfTree =
+            if (Tuple.first p) > mazeSize then
+                outOfTree
+            else if List.member p outOfTree then
+                     let
+                         dummy = Debug.log "" p
+                     in
+                         Debug.log "out of tree" <|
+                             delete (Maybe.withDefault (mazeSize+1,0) <| Dict.get p newMaze)
+                                 newMaze  (List.filter (\q -> p /= q) outOfTree)
+                 else
+                     outOfTree
+        newOutOfTree = if List.member next model.outOfTree then
+                           model.outOfTree
+                       else -- in tree
+                           delete model.lerwStart newMaze model.outOfTree
+        newStart = if List.member next model.outOfTree then
+                       next
+                   else -- in tree
+                       --Maybe.withDefault (0,0) <| List.head model.outOfTree
+                       Maybe.withDefault (0,0) <| List.head newOutOfTree
+                           
+        newCurrentPos = if List.member next model.outOfTree then
+                            next
+                        else -- in tree
+                            newStart
+    in
+        {model |
+         maze = newMaze
+        ,lerwStart = newStart
+        ,outOfTree = newOutOfTree
+        ,currentPos = newCurrentPos
+        }
+                    
 turnLeft: Player -> Player
 turnLeft p = {p|theta=p.theta+(3*pi/180)}          
 
@@ -449,6 +578,7 @@ subscriptions model =
     Sub.batch
         [othersMove OthersMoved
         ,skywayId IdDefined
+        ,handsReceiver Hands
         --,Browser.Events.onKeyPress keyDecoder 
         ]
 
