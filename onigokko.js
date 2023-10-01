@@ -7209,7 +7209,7 @@ var $elm$random$Random$generate = F2(
 			$elm$random$Random$Generate(
 				A2($elm$random$Random$map, tagger, generator)));
 	});
-var $author$project$Onigokko$mazeSize = 5;
+var $author$project$Onigokko$mazeSize = 10;
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -7321,6 +7321,7 @@ var $author$project$Onigokko$init = function (_v0) {
 			host: false,
 			mazeData: {
 				currentPos: _Utils_Tuple2(0, 0),
+				dual: $elm$core$Dict$empty,
 				lerwStart: _Utils_Tuple2(0, 0),
 				maze: $elm$core$Dict$empty,
 				outOfTree: $author$project$Onigokko$vertexList($author$project$Onigokko$mazeSize)
@@ -7687,6 +7688,227 @@ var $author$project$Onigokko$addToMaze = F2(
 			model,
 			{currentPos: newCurrentPos, lerwStart: newStart, maze: newMaze, outOfTree: newOutOfTree});
 	});
+var $author$project$Onigokko$East = {$: 'East'};
+var $author$project$Onigokko$North = {$: 'North'};
+var $author$project$Onigokko$South = {$: 'South'};
+var $author$project$Onigokko$West = {$: 'West'};
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $author$project$Onigokko$dual = function (primal) {
+	var remove = F3(
+		function (_v2, _v3, dict) {
+			var fromX = _v2.a;
+			var fromY = _v2.b;
+			var toX = _v3.a;
+			var toY = _v3.b;
+			var dy = toY - fromY;
+			var dx = toX - fromX;
+			var pdir = (dx > 0) ? $author$project$Onigokko$East : ((dx < 0) ? $author$project$Onigokko$West : ((dy > 0) ? $author$project$Onigokko$North : $author$project$Onigokko$South));
+			switch (pdir.$) {
+				case 'West':
+					var leftBelow = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX, fromY - 1),
+							dict));
+					var leftAbove = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX, fromY + 1),
+							dict));
+					return A3(
+						$elm$core$Dict$insert,
+						_Utils_Tuple2(fromX, fromY - 1),
+						A2(
+							$elm$core$List$filter,
+							function (dir) {
+								return !_Utils_eq(dir, $author$project$Onigokko$North);
+							},
+							leftBelow),
+						A3(
+							$elm$core$Dict$insert,
+							_Utils_Tuple2(fromX, fromY + 1),
+							A2(
+								$elm$core$List$filter,
+								function (dir) {
+									return !_Utils_eq(dir, $author$project$Onigokko$South);
+								},
+								leftAbove),
+							dict));
+				case 'East':
+					var rightBelow = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX + 1, fromY - 1),
+							dict));
+					var rightAbove = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX + 1, fromY + 1),
+							dict));
+					return A3(
+						$elm$core$Dict$insert,
+						_Utils_Tuple2(fromX + 1, fromY - 1),
+						A2(
+							$elm$core$List$filter,
+							function (dir) {
+								return !_Utils_eq(dir, $author$project$Onigokko$North);
+							},
+							rightBelow),
+						A3(
+							$elm$core$Dict$insert,
+							_Utils_Tuple2(fromX + 1, fromY + 1),
+							A2(
+								$elm$core$List$filter,
+								function (dir) {
+									return !_Utils_eq(dir, $author$project$Onigokko$South);
+								},
+								rightAbove),
+							dict));
+				case 'South':
+					var rightAbove = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX + 1, fromY),
+							dict));
+					var leftAbove = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX, fromY),
+							dict));
+					return A3(
+						$elm$core$Dict$insert,
+						_Utils_Tuple2(fromX + 1, fromY),
+						A2(
+							$elm$core$List$filter,
+							function (dir) {
+								return !_Utils_eq(dir, $author$project$Onigokko$West);
+							},
+							rightAbove),
+						A3(
+							$elm$core$Dict$insert,
+							_Utils_Tuple2(fromX, fromY),
+							A2(
+								$elm$core$List$filter,
+								function (dir) {
+									return !_Utils_eq(dir, $author$project$Onigokko$East);
+								},
+								leftAbove),
+							dict));
+				default:
+					var rightBelow = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX + 1, fromY + 1),
+							dict));
+					var leftBelow = A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							$elm$core$Dict$get,
+							_Utils_Tuple2(fromX, fromY + 1),
+							dict));
+					return A3(
+						$elm$core$Dict$insert,
+						_Utils_Tuple2(fromX + 1, fromY + 1),
+						A2(
+							$elm$core$List$filter,
+							function (dir) {
+								return !_Utils_eq(dir, $author$project$Onigokko$West);
+							},
+							rightBelow),
+						A3(
+							$elm$core$Dict$insert,
+							_Utils_Tuple2(fromX, fromY + 1),
+							A2(
+								$elm$core$List$filter,
+								function (dir) {
+									return !_Utils_eq(dir, $author$project$Onigokko$East);
+								},
+								leftBelow),
+							dict));
+			}
+		});
+	var edges = function (_v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_eq(
+			_Utils_Tuple2(x, y),
+			_Utils_Tuple2(-$author$project$Onigokko$mazeSize, -$author$project$Onigokko$mazeSize)) ? _List_Nil : (_Utils_eq(x, -$author$project$Onigokko$mazeSize) ? _List_fromArray(
+			[$author$project$Onigokko$South]) : (_Utils_eq(y, -$author$project$Onigokko$mazeSize) ? _List_fromArray(
+			[$author$project$Onigokko$West]) : _List_fromArray(
+			[$author$project$Onigokko$South, $author$project$Onigokko$West])));
+	};
+	var dualV = $elm$core$List$concat(
+		A2(
+			$elm$core$List$map,
+			function (x) {
+				return A2(
+					$elm$core$List$map,
+					function (y) {
+						return _Utils_Tuple2(x, y);
+					},
+					A2($elm$core$List$range, -$author$project$Onigokko$mazeSize, $author$project$Onigokko$mazeSize + 1));
+			},
+			A2($elm$core$List$range, -$author$project$Onigokko$mazeSize, $author$project$Onigokko$mazeSize + 1)));
+	var initialEdges = A3(
+		$elm$core$List$foldl,
+		F2(
+			function (v, dict) {
+				return A3(
+					$elm$core$Dict$insert,
+					v,
+					edges(v),
+					dict);
+			}),
+		$elm$core$Dict$empty,
+		dualV);
+	return A3(
+		$elm$core$Dict$foldl,
+		F3(
+			function (k, v, dict) {
+				return A3(remove, k, v, dict);
+			}),
+		initialEdges,
+		primal);
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Onigokko$join = _Platform_outgoingPort('join', $elm$json$Json$Encode$string);
 var $elm$core$Basics$cos = _Basics_cos;
@@ -7699,8 +7921,8 @@ var $author$project$Onigokko$moveBackward = function (p) {
 		{x: newX, y: newY});
 };
 var $author$project$Onigokko$moveForward = function (p) {
-	var newY = p.y + (0.5 * $elm$core$Basics$sin(p.theta));
-	var newX = p.x + (0.5 * $elm$core$Basics$cos(p.theta));
+	var newY = p.y + (0.15 * $elm$core$Basics$sin(p.theta));
+	var newX = p.x + (0.15 * $elm$core$Basics$cos(p.theta));
 	return _Utils_update(
 		p,
 		{x: newX, y: newY});
@@ -7758,10 +7980,6 @@ var $author$project$Onigokko$moved = _Platform_outgoingPort(
 					$elm$json$Json$Encode$float($.y))
 				]));
 	});
-var $author$project$Onigokko$East = {$: 'East'};
-var $author$project$Onigokko$North = {$: 'North'};
-var $author$project$Onigokko$South = {$: 'South'};
-var $author$project$Onigokko$West = {$: 'West'};
 var $elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -7862,6 +8080,7 @@ var $author$project$Onigokko$nextDir = F2(
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$Onigokko$turnLeft = function (p) {
 	return _Utils_update(
 		p,
@@ -8024,12 +8243,21 @@ var $author$project$Onigokko$update = F2(
 			case 'NextGen':
 				var dir = msg.a;
 				var newMaze = A2($author$project$Onigokko$addToMaze, dir, model.mazeData);
+				var completed = !$elm$core$List$length(newMaze.outOfTree);
+				var newMazeWithDual = completed ? _Utils_update(
+					newMaze,
+					{
+						dual: A2(
+							$elm$core$Debug$log,
+							'dual maze',
+							$author$project$Onigokko$dual(newMaze.maze))
+					}) : newMaze;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{mazeData: newMaze}),
+						{mazeData: newMazeWithDual}),
 					function () {
-						if ($elm$core$List$length(newMaze.outOfTree) > 0) {
+						if (!completed) {
 							return A2(
 								$elm$random$Random$generate,
 								$author$project$Onigokko$NextGen,
@@ -8172,6 +8400,7 @@ var $avh4$elm_color$Color$RgbaSpace = F4(
 	});
 var $avh4$elm_color$Color$black = A4($avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
 var $avh4$elm_color$Color$blue = A4($avh4$elm_color$Color$RgbaSpace, 52 / 255, 101 / 255, 164 / 255, 1.0);
+var $avh4$elm_color$Color$brown = A4($avh4$elm_color$Color$RgbaSpace, 193 / 255, 125 / 255, 17 / 255, 1.0);
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $ianmackenzie$elm_units$Length$meters = function (numMeters) {
 	return $ianmackenzie$elm_units$Quantity$Quantity(numMeters);
@@ -8821,7 +9050,6 @@ var $elm$core$Basics$composeL = F3(
 		return g(
 			f(x));
 	});
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$List$all = F2(
 	function (isOkay, list) {
 		return !A2(
@@ -10810,6 +11038,423 @@ var $ianmackenzie$elm_units$Angle$degrees = function (numDegrees) {
 	return $ianmackenzie$elm_units$Angle$radians($elm$core$Basics$pi * (numDegrees / 180));
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $ianmackenzie$elm_geometry$Frame3d$copy = function (_v0) {
+	var properties = _v0.a;
+	return $ianmackenzie$elm_geometry$Geometry$Types$Frame3d(properties);
+};
+var $ianmackenzie$elm_geometry$Block3d$axes = function (_v0) {
+	var block = _v0.a;
+	return $ianmackenzie$elm_geometry$Frame3d$copy(block.axes);
+};
+var $ianmackenzie$elm_geometry$BoundingBox3d$aggregateOfHelp = F8(
+	function (currentMinX, currentMaxX, currentMinY, currentMaxY, currentMinZ, currentMaxZ, getBoundingBox, items) {
+		aggregateOfHelp:
+		while (true) {
+			if (items.b) {
+				var next = items.a;
+				var rest = items.b;
+				var _v1 = getBoundingBox(next);
+				var b = _v1.a;
+				var $temp$currentMinX = A2($elm$core$Basics$min, b.minX, currentMinX),
+					$temp$currentMaxX = A2($elm$core$Basics$max, b.maxX, currentMaxX),
+					$temp$currentMinY = A2($elm$core$Basics$min, b.minY, currentMinY),
+					$temp$currentMaxY = A2($elm$core$Basics$max, b.maxY, currentMaxY),
+					$temp$currentMinZ = A2($elm$core$Basics$min, b.minZ, currentMinZ),
+					$temp$currentMaxZ = A2($elm$core$Basics$max, b.maxZ, currentMaxZ),
+					$temp$getBoundingBox = getBoundingBox,
+					$temp$items = rest;
+				currentMinX = $temp$currentMinX;
+				currentMaxX = $temp$currentMaxX;
+				currentMinY = $temp$currentMinY;
+				currentMaxY = $temp$currentMaxY;
+				currentMinZ = $temp$currentMinZ;
+				currentMaxZ = $temp$currentMaxZ;
+				getBoundingBox = $temp$getBoundingBox;
+				items = $temp$items;
+				continue aggregateOfHelp;
+			} else {
+				return $ianmackenzie$elm_geometry$Geometry$Types$BoundingBox3d(
+					{maxX: currentMaxX, maxY: currentMaxY, maxZ: currentMaxZ, minX: currentMinX, minY: currentMinY, minZ: currentMinZ});
+			}
+		}
+	});
+var $ianmackenzie$elm_geometry$BoundingBox3d$aggregateOf = F3(
+	function (getBoundingBox, first, rest) {
+		var _v0 = getBoundingBox(first);
+		var b1 = _v0.a;
+		return A8($ianmackenzie$elm_geometry$BoundingBox3d$aggregateOfHelp, b1.minX, b1.maxX, b1.minY, b1.maxY, b1.minZ, b1.maxZ, getBoundingBox, rest);
+	});
+var $ianmackenzie$elm_units$Quantity$max = F2(
+	function (_v0, _v1) {
+		var x = _v0.a;
+		var y = _v1.a;
+		return $ianmackenzie$elm_units$Quantity$Quantity(
+			A2($elm$core$Basics$max, x, y));
+	});
+var $ianmackenzie$elm_units$Quantity$min = F2(
+	function (_v0, _v1) {
+		var x = _v0.a;
+		var y = _v1.a;
+		return $ianmackenzie$elm_units$Quantity$Quantity(
+			A2($elm$core$Basics$min, x, y));
+	});
+var $ianmackenzie$elm_geometry$Point3d$xCoordinate = function (_v0) {
+	var p = _v0.a;
+	return $ianmackenzie$elm_units$Quantity$Quantity(p.x);
+};
+var $ianmackenzie$elm_geometry$Point3d$yCoordinate = function (_v0) {
+	var p = _v0.a;
+	return $ianmackenzie$elm_units$Quantity$Quantity(p.y);
+};
+var $ianmackenzie$elm_geometry$Point3d$zCoordinate = function (_v0) {
+	var p = _v0.a;
+	return $ianmackenzie$elm_units$Quantity$Quantity(p.z);
+};
+var $ianmackenzie$elm_geometry$Triangle3d$boundingBox = function (triangle) {
+	var _v0 = $ianmackenzie$elm_geometry$Triangle3d$vertices(triangle);
+	var p1 = _v0.a;
+	var p2 = _v0.b;
+	var p3 = _v0.c;
+	var x1 = $ianmackenzie$elm_geometry$Point3d$xCoordinate(p1);
+	var y1 = $ianmackenzie$elm_geometry$Point3d$yCoordinate(p1);
+	var z1 = $ianmackenzie$elm_geometry$Point3d$zCoordinate(p1);
+	var x2 = $ianmackenzie$elm_geometry$Point3d$xCoordinate(p2);
+	var y2 = $ianmackenzie$elm_geometry$Point3d$yCoordinate(p2);
+	var z2 = $ianmackenzie$elm_geometry$Point3d$zCoordinate(p2);
+	var x3 = $ianmackenzie$elm_geometry$Point3d$xCoordinate(p3);
+	var y3 = $ianmackenzie$elm_geometry$Point3d$yCoordinate(p3);
+	var z3 = $ianmackenzie$elm_geometry$Point3d$zCoordinate(p3);
+	return $ianmackenzie$elm_geometry$BoundingBox3d$fromExtrema(
+		{
+			maxX: A2(
+				$ianmackenzie$elm_units$Quantity$max,
+				x1,
+				A2($ianmackenzie$elm_units$Quantity$max, x2, x3)),
+			maxY: A2(
+				$ianmackenzie$elm_units$Quantity$max,
+				y1,
+				A2($ianmackenzie$elm_units$Quantity$max, y2, y3)),
+			maxZ: A2(
+				$ianmackenzie$elm_units$Quantity$max,
+				z1,
+				A2($ianmackenzie$elm_units$Quantity$max, z2, z3)),
+			minX: A2(
+				$ianmackenzie$elm_units$Quantity$min,
+				x1,
+				A2($ianmackenzie$elm_units$Quantity$min, x2, x3)),
+			minY: A2(
+				$ianmackenzie$elm_units$Quantity$min,
+				y1,
+				A2($ianmackenzie$elm_units$Quantity$min, y2, y3)),
+			minZ: A2(
+				$ianmackenzie$elm_units$Quantity$min,
+				z1,
+				A2($ianmackenzie$elm_units$Quantity$min, z2, z3))
+		});
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Mesh$facetAttributes = function (triangle) {
+	var _v0 = $ianmackenzie$elm_geometry$Triangle3d$vertices(triangle);
+	var p1 = _v0.a;
+	var p2 = _v0.b;
+	var p3 = _v0.c;
+	var normal = $ianmackenzie$elm_geometry_linear_algebra_interop$Geometry$Interop$LinearAlgebra$Vector3d$toVec3(
+		A3($ianmackenzie$elm_3d_scene$Scene3d$Mesh$triangleNormal, p1, p2, p3));
+	return _Utils_Tuple3(
+		{
+			normal: normal,
+			position: $ianmackenzie$elm_geometry_linear_algebra_interop$Geometry$Interop$LinearAlgebra$Point3d$toVec3(p1)
+		},
+		{
+			normal: normal,
+			position: $ianmackenzie$elm_geometry_linear_algebra_interop$Geometry$Interop$LinearAlgebra$Point3d$toVec3(p2)
+		},
+		{
+			normal: normal,
+			position: $ianmackenzie$elm_geometry_linear_algebra_interop$Geometry$Interop$LinearAlgebra$Point3d$toVec3(p3)
+		});
+};
+var $elm_explorations$webgl$WebGL$Mesh3 = F2(
+	function (a, b) {
+		return {$: 'Mesh3', a: a, b: b};
+	});
+var $elm_explorations$webgl$WebGL$triangles = $elm_explorations$webgl$WebGL$Mesh3(
+	{elemSize: 3, indexSize: 0, mode: 4});
+var $ianmackenzie$elm_3d_scene$Scene3d$Mesh$facets = function (givenTriangles) {
+	if (!givenTriangles.b) {
+		return $ianmackenzie$elm_3d_scene$Scene3d$Types$EmptyMesh;
+	} else {
+		var first = givenTriangles.a;
+		var rest = givenTriangles.b;
+		var webGLMesh = $elm_explorations$webgl$WebGL$triangles(
+			A2($elm$core$List$map, $ianmackenzie$elm_3d_scene$Scene3d$Mesh$facetAttributes, givenTriangles));
+		var bounds = A3($ianmackenzie$elm_geometry$BoundingBox3d$aggregateOf, $ianmackenzie$elm_geometry$Triangle3d$boundingBox, first, rest);
+		return A4($ianmackenzie$elm_3d_scene$Scene3d$Types$Facets, bounds, givenTriangles, webGLMesh, $ianmackenzie$elm_3d_scene$Scene3d$Types$KeepBackFaces);
+	}
+};
+var $ianmackenzie$elm_geometry$Geometry$Types$Triangle3d = function (a) {
+	return {$: 'Triangle3d', a: a};
+};
+var $ianmackenzie$elm_geometry$Triangle3d$from = F3(
+	function (p1, p2, p3) {
+		return $ianmackenzie$elm_geometry$Geometry$Types$Triangle3d(
+			_Utils_Tuple3(p1, p2, p3));
+	});
+var $ianmackenzie$elm_3d_scene$Scene3d$Primitives$block = function () {
+	var z = $ianmackenzie$elm_units$Length$meters(1);
+	var y = $ianmackenzie$elm_units$Length$meters(1);
+	var x = $ianmackenzie$elm_units$Length$meters(1);
+	var minZ = A2($ianmackenzie$elm_units$Quantity$multiplyBy, -0.5, z);
+	var minY = A2($ianmackenzie$elm_units$Quantity$multiplyBy, -0.5, y);
+	var minX = A2($ianmackenzie$elm_units$Quantity$multiplyBy, -0.5, x);
+	var p0 = A3($ianmackenzie$elm_geometry$Point3d$xyz, minX, minY, minZ);
+	var maxZ = A2($ianmackenzie$elm_units$Quantity$multiplyBy, 0.5, z);
+	var p4 = A3($ianmackenzie$elm_geometry$Point3d$xyz, minX, minY, maxZ);
+	var maxY = A2($ianmackenzie$elm_units$Quantity$multiplyBy, 0.5, y);
+	var p3 = A3($ianmackenzie$elm_geometry$Point3d$xyz, minX, maxY, minZ);
+	var p7 = A3($ianmackenzie$elm_geometry$Point3d$xyz, minX, maxY, maxZ);
+	var maxX = A2($ianmackenzie$elm_units$Quantity$multiplyBy, 0.5, x);
+	var p1 = A3($ianmackenzie$elm_geometry$Point3d$xyz, maxX, minY, minZ);
+	var p2 = A3($ianmackenzie$elm_geometry$Point3d$xyz, maxX, maxY, minZ);
+	var p5 = A3($ianmackenzie$elm_geometry$Point3d$xyz, maxX, minY, maxZ);
+	var p6 = A3($ianmackenzie$elm_geometry$Point3d$xyz, maxX, maxY, maxZ);
+	return $ianmackenzie$elm_3d_scene$Scene3d$Mesh$cullBackFaces(
+		$ianmackenzie$elm_3d_scene$Scene3d$Mesh$facets(
+			_List_fromArray(
+				[
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p0, p2, p1),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p0, p3, p2),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p4, p5, p6),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p4, p6, p7),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p1, p2, p6),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p1, p6, p5),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p0, p7, p3),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p0, p4, p7),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p0, p1, p5),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p0, p5, p4),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p3, p6, p2),
+					A3($ianmackenzie$elm_geometry$Triangle3d$from, p3, p7, p6)
+				])));
+}();
+var $ianmackenzie$elm_3d_scene$Scene3d$Primitives$blockShadow = $ianmackenzie$elm_3d_scene$Scene3d$Mesh$shadow($ianmackenzie$elm_3d_scene$Scene3d$Primitives$block);
+var $ianmackenzie$elm_geometry$Block3d$dimensions = function (_v0) {
+	var block = _v0.a;
+	return block.dimensions;
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Entity$block = F4(
+	function (renderObject, renderShadow, givenMaterial, givenBlock) {
+		var baseEntity = A2($ianmackenzie$elm_3d_scene$Scene3d$Entity$mesh, givenMaterial, $ianmackenzie$elm_3d_scene$Scene3d$Primitives$block);
+		var untransformedEntity = function () {
+			var _v1 = _Utils_Tuple2(renderObject, renderShadow);
+			if (_v1.a) {
+				if (_v1.b) {
+					return $ianmackenzie$elm_3d_scene$Scene3d$Entity$group(
+						_List_fromArray(
+							[
+								baseEntity,
+								$ianmackenzie$elm_3d_scene$Scene3d$Entity$shadow($ianmackenzie$elm_3d_scene$Scene3d$Primitives$blockShadow)
+							]));
+				} else {
+					return baseEntity;
+				}
+			} else {
+				if (_v1.b) {
+					return $ianmackenzie$elm_3d_scene$Scene3d$Entity$shadow($ianmackenzie$elm_3d_scene$Scene3d$Primitives$blockShadow);
+				} else {
+					return $ianmackenzie$elm_3d_scene$Scene3d$Entity$empty;
+				}
+			}
+		}();
+		var _v0 = $ianmackenzie$elm_geometry$Block3d$dimensions(givenBlock);
+		var scaleX = _v0.a.a;
+		var scaleY = _v0.b.a;
+		var scaleZ = _v0.c.a;
+		return A2(
+			$ianmackenzie$elm_3d_scene$Scene3d$Entity$placeIn,
+			$ianmackenzie$elm_geometry$Block3d$axes(givenBlock),
+			A2(
+				$ianmackenzie$elm_3d_scene$Scene3d$Entity$preScale,
+				_Utils_Tuple3(scaleX, scaleY, scaleZ),
+				untransformedEntity));
+	});
+var $ianmackenzie$elm_3d_scene$Scene3d$block = F2(
+	function (givenMaterial, givenBlock) {
+		return A4($ianmackenzie$elm_3d_scene$Scene3d$Entity$block, true, false, givenMaterial, givenBlock);
+	});
+var $ianmackenzie$elm_geometry$Geometry$Types$Block3d = function (a) {
+	return {$: 'Block3d', a: a};
+};
+var $ianmackenzie$elm_geometry$Direction3d$negativeX = $ianmackenzie$elm_geometry$Direction3d$unsafe(
+	{x: -1, y: 0, z: 0});
+var $ianmackenzie$elm_geometry$Direction3d$negativeY = $ianmackenzie$elm_geometry$Direction3d$unsafe(
+	{x: 0, y: -1, z: 0});
+var $ianmackenzie$elm_geometry$Block3d$axisAligned = F6(
+	function (x1, y1, z1, x2, y2, z2) {
+		var computedZDirection = A2($ianmackenzie$elm_units$Quantity$greaterThanOrEqualTo, z1, z2) ? $ianmackenzie$elm_geometry$Direction3d$positiveZ : $ianmackenzie$elm_geometry$Direction3d$negativeZ;
+		var computedYDirection = A2($ianmackenzie$elm_units$Quantity$greaterThanOrEqualTo, y1, y2) ? $ianmackenzie$elm_geometry$Direction3d$positiveY : $ianmackenzie$elm_geometry$Direction3d$negativeY;
+		var computedXDirection = A2($ianmackenzie$elm_units$Quantity$greaterThanOrEqualTo, x1, x2) ? $ianmackenzie$elm_geometry$Direction3d$positiveX : $ianmackenzie$elm_geometry$Direction3d$negativeX;
+		var computedDimensions = _Utils_Tuple3(
+			$ianmackenzie$elm_units$Quantity$abs(
+				A2($ianmackenzie$elm_units$Quantity$minus, x1, x2)),
+			$ianmackenzie$elm_units$Quantity$abs(
+				A2($ianmackenzie$elm_units$Quantity$minus, y1, y2)),
+			$ianmackenzie$elm_units$Quantity$abs(
+				A2($ianmackenzie$elm_units$Quantity$minus, z1, z2)));
+		var computedCenterPoint = A3(
+			$ianmackenzie$elm_geometry$Point3d$xyz,
+			A2($ianmackenzie$elm_units$Quantity$midpoint, x1, x2),
+			A2($ianmackenzie$elm_units$Quantity$midpoint, y1, y2),
+			A2($ianmackenzie$elm_units$Quantity$midpoint, z1, z2));
+		var computedAxes = $ianmackenzie$elm_geometry$Frame3d$unsafe(
+			{originPoint: computedCenterPoint, xDirection: computedXDirection, yDirection: computedYDirection, zDirection: computedZDirection});
+		return $ianmackenzie$elm_geometry$Geometry$Types$Block3d(
+			{axes: computedAxes, dimensions: computedDimensions});
+	});
+var $ianmackenzie$elm_geometry$Block3d$from = F2(
+	function (p1, p2) {
+		return A6(
+			$ianmackenzie$elm_geometry$Block3d$axisAligned,
+			$ianmackenzie$elm_geometry$Point3d$xCoordinate(p1),
+			$ianmackenzie$elm_geometry$Point3d$yCoordinate(p1),
+			$ianmackenzie$elm_geometry$Point3d$zCoordinate(p1),
+			$ianmackenzie$elm_geometry$Point3d$xCoordinate(p2),
+			$ianmackenzie$elm_geometry$Point3d$yCoordinate(p2),
+			$ianmackenzie$elm_geometry$Point3d$zCoordinate(p2));
+	});
+var $ianmackenzie$elm_geometry$Point3d$meters = F3(
+	function (x, y, z) {
+		return $ianmackenzie$elm_geometry$Geometry$Types$Point3d(
+			{x: x, y: y, z: z});
+	});
+var $ianmackenzie$elm_3d_scene$Scene3d$Types$Constant = function (a) {
+	return {$: 'Constant', a: a};
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Types$PbrMaterial = F5(
+	function (a, b, c, d, e) {
+		return {$: 'PbrMaterial', a: a, b: b, c: c, d: d, e: e};
+	});
+var $ianmackenzie$elm_3d_scene$Scene3d$Types$UseMeshUvs = {$: 'UseMeshUvs'};
+var $ianmackenzie$elm_3d_scene$Scene3d$Types$VerticalNormal = {$: 'VerticalNormal'};
+var $elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
+var $ianmackenzie$elm_3d_scene$Scene3d$Types$LinearRgb = function (a) {
+	return {$: 'LinearRgb', a: a};
+};
+var $elm$core$Basics$pow = _Basics_pow;
+var $ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma = function (u) {
+	return A3(
+		$elm$core$Basics$clamp,
+		0,
+		1,
+		(u <= 0.04045) ? (u / 12.92) : A2($elm$core$Basics$pow, (u + 0.055) / 1.055, 2.4));
+};
+var $avh4$elm_color$Color$toRgba = function (_v0) {
+	var r = _v0.a;
+	var g = _v0.b;
+	var b = _v0.c;
+	var a = _v0.d;
+	return {alpha: a, blue: b, green: g, red: r};
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$colorToLinearRgb = function (color) {
+	var _v0 = $avh4$elm_color$Color$toRgba(color);
+	var red = _v0.red;
+	var green = _v0.green;
+	var blue = _v0.blue;
+	return $ianmackenzie$elm_3d_scene$Scene3d$Types$LinearRgb(
+		A3(
+			$elm_explorations$linear_algebra$Math$Vector3$vec3,
+			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma(red),
+			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma(green),
+			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma(blue)));
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Material$pbr = function (_v0) {
+	var baseColor = _v0.baseColor;
+	var roughness = _v0.roughness;
+	var metallic = _v0.metallic;
+	return A5(
+		$ianmackenzie$elm_3d_scene$Scene3d$Types$PbrMaterial,
+		$ianmackenzie$elm_3d_scene$Scene3d$Types$UseMeshUvs,
+		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant(
+			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$colorToLinearRgb(baseColor)),
+		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant(
+			A3($elm$core$Basics$clamp, 0, 1, roughness)),
+		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant(
+			A3($elm$core$Basics$clamp, 0, 1, metallic)),
+		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant($ianmackenzie$elm_3d_scene$Scene3d$Types$VerticalNormal));
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal = function (_v0) {
+	var baseColor = _v0.baseColor;
+	var roughness = _v0.roughness;
+	return $ianmackenzie$elm_3d_scene$Scene3d$Material$pbr(
+		{baseColor: baseColor, metallic: 0, roughness: roughness});
+};
+var $author$project$Onigokko$dualMazeView = function (mazemodel) {
+	var paths = F2(
+		function (_v2, dirList) {
+			var x = _v2.a;
+			var y = _v2.b;
+			var materialBrown = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
+				{baseColor: $avh4$elm_color$Color$brown, roughness: 0.4});
+			var fromY = y;
+			var fromX = x;
+			return A2(
+				$elm$core$List$map,
+				function (dir) {
+					switch (dir.$) {
+						case 'East':
+							return A2(
+								$ianmackenzie$elm_3d_scene$Scene3d$block,
+								materialBrown,
+								A2(
+									$ianmackenzie$elm_geometry$Block3d$from,
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX, fromY - 0.1, 0),
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX + 1, fromY + 0.1, 0.3)));
+						case 'West':
+							return A2(
+								$ianmackenzie$elm_3d_scene$Scene3d$block,
+								materialBrown,
+								A2(
+									$ianmackenzie$elm_geometry$Block3d$from,
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX, fromY - 0.1, 0),
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX - 1, fromY + 0.1, 0.3)));
+						case 'North':
+							return A2(
+								$ianmackenzie$elm_3d_scene$Scene3d$block,
+								materialBrown,
+								A2(
+									$ianmackenzie$elm_geometry$Block3d$from,
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX - 0.1, fromY, 0),
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX + 0.1, fromY + 1, 0.3)));
+						default:
+							return A2(
+								$ianmackenzie$elm_3d_scene$Scene3d$block,
+								materialBrown,
+								A2(
+									$ianmackenzie$elm_geometry$Block3d$from,
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX - 0.1, fromY, 0),
+									A3($ianmackenzie$elm_geometry$Point3d$meters, fromX + 0.1, fromY - 1, 0.3)));
+					}
+				},
+				dirList);
+		});
+	return A3(
+		$elm$core$Dict$foldl,
+		F3(
+			function (_v0, dirs, list) {
+				var x = _v0.a;
+				var y = _v0.b;
+				return _Utils_ap(
+					A2(
+						paths,
+						_Utils_Tuple2(x, y),
+						dirs),
+					list);
+			}),
+		_List_Nil,
+		mazemodel.dual);
+};
+var $avh4$elm_color$Color$gray = A4($avh4$elm_color$Color$RgbaSpace, 211 / 255, 215 / 255, 207 / 255, 1.0);
 var $avh4$elm_color$Color$green = A4($avh4$elm_color$Color$RgbaSpace, 115 / 255, 210 / 255, 22 / 255, 1.0);
 var $ianmackenzie$elm_3d_scene$Scene3d$group = function (entities) {
 	return $ianmackenzie$elm_3d_scene$Scene3d$Entity$group(entities);
@@ -10970,75 +11615,6 @@ var $ianmackenzie$elm_3d_camera$Viewpoint3d$lookAt = function (_arguments) {
 					{originPoint: _arguments.eyePoint, xDirection: arbitraryXDirection, yDirection: _arguments.upDirection, zDirection: arbitraryZDirection}));
 		}
 	}
-};
-var $ianmackenzie$elm_geometry$Point3d$meters = F3(
-	function (x, y, z) {
-		return $ianmackenzie$elm_geometry$Geometry$Types$Point3d(
-			{x: x, y: y, z: z});
-	});
-var $ianmackenzie$elm_3d_scene$Scene3d$Types$Constant = function (a) {
-	return {$: 'Constant', a: a};
-};
-var $ianmackenzie$elm_3d_scene$Scene3d$Types$PbrMaterial = F5(
-	function (a, b, c, d, e) {
-		return {$: 'PbrMaterial', a: a, b: b, c: c, d: d, e: e};
-	});
-var $ianmackenzie$elm_3d_scene$Scene3d$Types$UseMeshUvs = {$: 'UseMeshUvs'};
-var $ianmackenzie$elm_3d_scene$Scene3d$Types$VerticalNormal = {$: 'VerticalNormal'};
-var $elm$core$Basics$clamp = F3(
-	function (low, high, number) {
-		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
-	});
-var $ianmackenzie$elm_3d_scene$Scene3d$Types$LinearRgb = function (a) {
-	return {$: 'LinearRgb', a: a};
-};
-var $elm$core$Basics$pow = _Basics_pow;
-var $ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma = function (u) {
-	return A3(
-		$elm$core$Basics$clamp,
-		0,
-		1,
-		(u <= 0.04045) ? (u / 12.92) : A2($elm$core$Basics$pow, (u + 0.055) / 1.055, 2.4));
-};
-var $avh4$elm_color$Color$toRgba = function (_v0) {
-	var r = _v0.a;
-	var g = _v0.b;
-	var b = _v0.c;
-	var a = _v0.d;
-	return {alpha: a, blue: b, green: g, red: r};
-};
-var $ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$colorToLinearRgb = function (color) {
-	var _v0 = $avh4$elm_color$Color$toRgba(color);
-	var red = _v0.red;
-	var green = _v0.green;
-	var blue = _v0.blue;
-	return $ianmackenzie$elm_3d_scene$Scene3d$Types$LinearRgb(
-		A3(
-			$elm_explorations$linear_algebra$Math$Vector3$vec3,
-			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma(red),
-			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma(green),
-			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma(blue)));
-};
-var $ianmackenzie$elm_3d_scene$Scene3d$Material$pbr = function (_v0) {
-	var baseColor = _v0.baseColor;
-	var roughness = _v0.roughness;
-	var metallic = _v0.metallic;
-	return A5(
-		$ianmackenzie$elm_3d_scene$Scene3d$Types$PbrMaterial,
-		$ianmackenzie$elm_3d_scene$Scene3d$Types$UseMeshUvs,
-		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant(
-			$ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$colorToLinearRgb(baseColor)),
-		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant(
-			A3($elm$core$Basics$clamp, 0, 1, roughness)),
-		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant(
-			A3($elm$core$Basics$clamp, 0, 1, metallic)),
-		$ianmackenzie$elm_3d_scene$Scene3d$Types$Constant($ianmackenzie$elm_3d_scene$Scene3d$Types$VerticalNormal));
-};
-var $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal = function (_v0) {
-	var baseColor = _v0.baseColor;
-	var roughness = _v0.roughness;
-	return $ianmackenzie$elm_3d_scene$Scene3d$Material$pbr(
-		{baseColor: baseColor, metallic: 0, roughness: roughness});
 };
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -12656,13 +13232,6 @@ var $ianmackenzie$elm_3d_scene$Scene3d$lightingDisabled = _Utils_Tuple2(
 		lights78: A2($ianmackenzie$elm_3d_scene$Scene3d$lightPair, $ianmackenzie$elm_3d_scene$Scene3d$Light$disabled, $ianmackenzie$elm_3d_scene$Scene3d$Light$disabled)
 	},
 	A4($elm_explorations$linear_algebra$Math$Vector4$vec4, 0, 0, 0, 0));
-var $ianmackenzie$elm_units$Quantity$max = F2(
-	function (_v0, _v1) {
-		var x = _v0.a;
-		var y = _v1.a;
-		return $ianmackenzie$elm_units$Quantity$Quantity(
-			A2($elm$core$Basics$max, x, y));
-	});
 var $ianmackenzie$elm_units$Quantity$negate = function (_v0) {
 	var value = _v0.a;
 	return $ianmackenzie$elm_units$Quantity$Quantity(-value);
@@ -13345,11 +13914,18 @@ var $author$project$Onigokko$view = function (model) {
 				return _List_fromArray(
 					[
 						A2(
+						$elm$html$Html$div,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Room Id は友達と決めてください。Nicknameは適当に決めてください。')
+							])),
+						A2(
 						$elm$html$Html$input,
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$type_('text'),
-								$elm$html$Html$Attributes$placeholder('Room'),
+								$elm$html$Html$Attributes$placeholder('Room ID'),
 								$elm$html$Html$Events$onInput($author$project$Onigokko$RoomChanged),
 								A2(
 								$elm$html$Html$Events$on,
@@ -13363,7 +13939,7 @@ var $author$project$Onigokko$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$type_('text'),
-								$elm$html$Html$Attributes$placeholder('Name'),
+								$elm$html$Html$Attributes$placeholder('Nickname'),
 								$elm$html$Html$Events$onInput($author$project$Onigokko$NameChanged),
 								$elm$html$Html$Attributes$value(model.me.name)
 							]),
@@ -13381,6 +13957,10 @@ var $author$project$Onigokko$view = function (model) {
 					]);
 			} else {
 				var id = _v0.a;
+				var walls = A2(
+					$elm$core$Debug$log,
+					'',
+					$author$project$Onigokko$dualMazeView(model.mazeData));
 				var relativePos = function (event) {
 					return {x: event.pointer.offsetPos.a, y: event.pointer.offsetPos.b};
 				};
@@ -13399,6 +13979,8 @@ var $author$project$Onigokko$view = function (model) {
 						$ianmackenzie$elm_units$Length$meters(0.3)));
 				var materialGreen = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
 					{baseColor: $avh4$elm_color$Color$green, roughness: 0.4});
+				var materialGray = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
+					{baseColor: $avh4$elm_color$Color$gray, roughness: 0.4});
 				var materialDart = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
 					{
 						baseColor: A4($avh4$elm_color$Color$rgba, 0.4, 0.6, 0.3, 0.8),
@@ -13411,6 +13993,8 @@ var $author$project$Onigokko$view = function (model) {
 					A3($ianmackenzie$elm_geometry$Point3d$meters, -1000, 1000, 0),
 					A3($ianmackenzie$elm_geometry$Point3d$meters, -1000, -1000, 0),
 					A3($ianmackenzie$elm_geometry$Point3d$meters, 1000, -1000, 0));
+				var materialBrown = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
+					{baseColor: $avh4$elm_color$Color$brown, roughness: 0.4});
 				var materialBlack = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
 					{baseColor: $avh4$elm_color$Color$black, roughness: 0.4});
 				var rb = A2(
@@ -13469,7 +14053,7 @@ var $author$project$Onigokko$view = function (model) {
 					var fx = ex + (5 * $elm$core$Basics$cos(model.me.theta));
 					return $ianmackenzie$elm_3d_camera$Camera3d$perspective(
 						{
-							verticalFieldOfView: $ianmackenzie$elm_units$Angle$degrees(40),
+							verticalFieldOfView: $ianmackenzie$elm_units$Angle$degrees(60),
 							viewpoint: $ianmackenzie$elm_3d_camera$Viewpoint3d$lookAt(
 								{
 									eyePoint: A3($ianmackenzie$elm_geometry$Point3d$meters, ex, ey, 1.0),
@@ -13508,10 +14092,12 @@ var $author$project$Onigokko$view = function (model) {
 							dimensions: _Utils_Tuple2(
 								$ianmackenzie$elm_units$Pixels$int(1000),
 								$ianmackenzie$elm_units$Pixels$int(1000)),
-							entities: A2(
-								$elm$core$List$cons,
-								plane,
-								A2($elm$core$List$map, $author$project$Onigokko$playerView, model.others)),
+							entities: _Utils_ap(
+								_List_fromArray(
+									[plane]),
+								_Utils_ap(
+									walls,
+									A2($elm$core$List$map, $author$project$Onigokko$playerView, model.others))),
 							shadows: true,
 							sunlightDirection: $ianmackenzie$elm_geometry$Direction3d$yz(
 								$ianmackenzie$elm_units$Angle$degrees(-120)),

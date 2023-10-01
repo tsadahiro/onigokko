@@ -148,7 +148,11 @@ addToMaze dir model =
 dual: Maze -> Dict (Int, Int) (List Direction)
 dual primal =
     let
-        dualV = vertexList (mazeSize+1)
+        dualV = List.concat <|
+                List.map (\x ->
+                              List.map (\y -> (x,y)) (List.range (-mazeSize) (mazeSize+1))
+                         )
+                    (List.range (-mazeSize) (mazeSize+1))
         edges: (Int, Int) -> List Direction
         edges (x,y) =
             if (x,y) == (-mazeSize, -mazeSize) then
@@ -159,25 +163,55 @@ dual primal =
                           [West]
                       else
                           [South, West]
+                              
         initialEdges : Dict (Int, Int) (List Direction)
         initialEdges =
             List.foldl (\v dict -> Dict.insert v (edges v) dict ) (Dict.empty) dualV
+                
         remove: (Int, Int) -> (Int, Int) -> Dict (Int,Int) (List Direction) -> Dict (Int,Int) (List Direction)
         remove (fromX, fromY) (toX, toY) dict =
             let
                 dx = toX-fromX
                 dy = toY-fromY
+                pdir = if dx > 0 then
+                          East
+                      else if dx < 0 then
+                               West
+                           else if dy > 0 then
+                                    North
+                                else
+                                   South
             in
-                case (dx,dy) of
-                    (-1,0) ->
+                case pdir of
+                    West ->
                         let
                             leftAbove = Maybe.withDefault [] <| Dict.get (fromX, (fromY+1)) dict
                             leftBelow = Maybe.withDefault [] <| Dict.get (fromX, (fromY-1)) dict
                         in
-                            Dict.insert (fromX, (fromY-1)) (List.filter (\dir -> dir /= North) leftBelow) dict <|
+                            Dict.insert (fromX, (fromY-1)) (List.filter (\dir -> dir /= North) leftBelow) <|
                             Dict.insert (fromX, (fromY+1)) (List.filter (\dir -> dir /= South) leftAbove) dict
-                    _ ->
-                        dict
+                    East ->
+                        let
+                            rightAbove = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY+1)) dict
+                            rightBelow = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY-1)) dict
+                        in
+                            Dict.insert ((fromX+1), (fromY-1)) (List.filter (\dir -> dir /= North) rightBelow) <|
+                            Dict.insert ((fromX+1), (fromY+1)) (List.filter (\dir -> dir /= South) rightAbove) dict
+                    South ->
+                        let
+                            leftAbove = Maybe.withDefault [] <| Dict.get ((fromX), (fromY)) dict
+                            rightAbove = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY)) dict
+                        in
+                            Dict.insert ((fromX+1), (fromY)) (List.filter (\dir -> dir /= West) rightAbove) <|
+                            Dict.insert ((fromX), (fromY)) (List.filter (\dir -> dir /= East) leftAbove) dict
+                    North ->
+                        let
+                            leftBelow = Maybe.withDefault [] <| Dict.get ((fromX), (fromY+1)) dict
+                            rightBelow = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY+1)) dict
+                        in
+                            Dict.insert ((fromX+1), (fromY+1)) (List.filter (\dir -> dir /= West) rightBelow) <|
+                            Dict.insert ((fromX), (fromY+1)) (List.filter (\dir -> dir /= East) leftBelow) dict
+                    --_ -> dict
     in
         Dict.foldl (\k v dict -> remove k v dict) initialEdges primal
 
@@ -189,9 +223,11 @@ view model =
     Html.div[]
         [svg [width "100%"
              ,height "100%"
-             ,viewBox "-400 -400 800 800"
+             ,viewBox "-300 -300 600 600"
              ]
-             ([]++(mazeView model))
+             ([]++(mazeView model)
+                  ++(dualMazeView model)
+             )
         ]
             
 
@@ -211,7 +247,54 @@ mazeView model =
                        ][]
                  )::list
             )[] model.maze
-                                    
+
+
+dualMazeView: Model -> List (Html Msg)
+dualMazeView model =
+    let
+        unit = 20
+        paths: (Int, Int) -> List Direction -> List (Html Msg)
+        paths (x,y) dirList =
+            let
+                fromX = (x*unit)-(unit//2)
+                fromY = (y*unit)-(unit//2)
+            in
+            List.map (\dir -> case dir of
+                                  East -> line [x1 (String.fromInt fromX)
+                                               ,y1 (String.fromInt fromY)
+                                               ,x2 (String.fromInt (fromX+unit))
+                                               ,y2 (String.fromInt (fromY))
+                                               ,stroke "red"
+                                               ,strokeWidth "5"
+                                               ][]
+                                  West -> line [x1 (String.fromInt fromX)
+                                               ,y1 (String.fromInt fromY)
+                                               ,x2 (String.fromInt (fromX-unit))
+                                               ,y2 (String.fromInt fromY)
+                                               ,stroke "red"
+                                               ,strokeWidth "5"
+                                               ][]
+                                  North -> line [x1 (String.fromInt fromX)       
+                                                ,y1 (String.fromInt fromY)       
+                                                ,x2 (String.fromInt fromX)       
+                                                ,y2 (String.fromInt (fromY+unit))
+                                                ,stroke "red"
+                                                ,strokeWidth "5"
+                                                ][]
+                                  South -> line [x1 (String.fromInt  fromX)       
+                                                ,y1 (String.fromInt  fromY)       
+                                                ,x2 (String.fromInt  fromX)       
+                                                ,y2 (String.fromInt  (fromY-unit))
+                                               ,stroke "red"
+                                               ,strokeWidth "5"
+                                               ][]
+                     ) dirList
+    in
+        Dict.foldl
+            (\(x,y) dirs list ->
+                 (paths (x,y) dirs)++list
+            ) [] (dual model.maze)
+            
 
 subscriptions: Model -> Sub Msg
 subscriptions model =

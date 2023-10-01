@@ -14,6 +14,7 @@ import Pixels
 import Point3d exposing (Point3d)
 import Sphere3d
 import Cylinder3d
+import Block3d
 import Triangle3d
 import Axis3d
 import Vector3d exposing (Vector3d)
@@ -27,6 +28,12 @@ import Json.Decode as D
 import Random
 import Time
 import Dict exposing (Dict)
+import Duration
+import Mass
+import Physics.Body as Body exposing (Body)
+import Physics.Coordinates exposing (BodyCoordinates, WorldCoordinates)
+import Physics.World as World exposing (World)
+
 
 main = Browser.element {init = init
                         ,update = update
@@ -84,6 +91,7 @@ type alias MazeModel = {maze: Maze
                        ,outOfTree: (List (Int, Int))
                        ,currentPos: (Int, Int)
                        ,lerwStart: (Int, Int)
+                       ,dual: Dict (Int, Int) (List MazeDirection)
                        }
 
 type MazeDirection = North
@@ -92,7 +100,7 @@ type MazeDirection = North
                    | West
 
 
-mazeSize = 5                     
+mazeSize = 10                     
 init: () -> (Model, Cmd Msg)
 init _ =
     ({me = {id=Nothing,name="",x=5,y=5,theta=0,oni=False}
@@ -104,6 +112,7 @@ init _ =
                  ,outOfTree = vertexList mazeSize
                  ,currentPos = (0,0)
                  ,lerwStart = (0,0)
+                 ,dual = Dict.empty
                  }
      }
     ,Random.generate RandomPlayerGenerated randomPlayer)
@@ -229,10 +238,14 @@ update msg model =
         NextGen dir ->
             let
                 newMaze = addToMaze dir model.mazeData
-                --dummy = Debug.log "dir" (dir,newModel.currentPos)
+                completed = (List.length newMaze.outOfTree) == 0
+                newMazeWithDual = if completed then
+                                      {newMaze | dual = (Debug.log "dual maze" <| dual newMaze.maze)}
+                                  else
+                                      newMaze
             in
-                ({model | mazeData = newMaze}
-                ,if (List.length newMaze.outOfTree) > 0 then
+                ({model | mazeData = newMazeWithDual}
+                ,if not completed then
                      Random.generate
                          NextGen (nextDir newMaze.currentPos mazeSize)
                  else
@@ -246,6 +259,77 @@ update msg model =
                 dummy = Debug.log "" points
             in
                 (model, Cmd.none)
+
+
+dual: Maze -> Dict (Int, Int) (List MazeDirection)
+dual primal =
+    let
+        dualV = List.concat <|
+                List.map (\x ->
+                              List.map (\y -> (x,y)) (List.range (-mazeSize) (mazeSize+1))
+                         )
+                    (List.range (-mazeSize) (mazeSize+1))
+        edges: (Int, Int) -> List MazeDirection
+        edges (x,y) =
+            if (x,y) == (-mazeSize, -mazeSize) then
+                []
+            else if x == (-mazeSize) then
+                     [South]
+                 else if y == (-mazeSize) then
+                          [West]
+                      else
+                          [South, West]
+                              
+        initialEdges : Dict (Int, Int) (List MazeDirection)
+        initialEdges =
+            List.foldl (\v dict -> Dict.insert v (edges v) dict ) (Dict.empty) dualV
+                
+        remove: (Int, Int) -> (Int, Int) -> Dict (Int,Int) (List MazeDirection) -> Dict (Int,Int) (List MazeDirection)
+        remove (fromX, fromY) (toX, toY) dict =
+            let
+                dx = toX-fromX
+                dy = toY-fromY
+                pdir = if dx > 0 then
+                          East
+                      else if dx < 0 then
+                               West
+                           else if dy > 0 then
+                                    North
+                                else
+                                   South
+            in
+                case pdir of
+                    West ->
+                        let
+                            leftAbove = Maybe.withDefault [] <| Dict.get (fromX, (fromY+1)) dict
+                            leftBelow = Maybe.withDefault [] <| Dict.get (fromX, (fromY-1)) dict
+                        in
+                            Dict.insert (fromX, (fromY-1)) (List.filter (\dir -> dir /= North) leftBelow) <|
+                            Dict.insert (fromX, (fromY+1)) (List.filter (\dir -> dir /= South) leftAbove) dict
+                    East ->
+                        let
+                            rightAbove = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY+1)) dict
+                            rightBelow = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY-1)) dict
+                        in
+                            Dict.insert ((fromX+1), (fromY-1)) (List.filter (\dir -> dir /= North) rightBelow) <|
+                            Dict.insert ((fromX+1), (fromY+1)) (List.filter (\dir -> dir /= South) rightAbove) dict
+                    South ->
+                        let
+                            leftAbove = Maybe.withDefault [] <| Dict.get ((fromX), (fromY)) dict
+                            rightAbove = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY)) dict
+                        in
+                            Dict.insert ((fromX+1), (fromY)) (List.filter (\dir -> dir /= West) rightAbove) <|
+                            Dict.insert ((fromX), (fromY)) (List.filter (\dir -> dir /= East) leftAbove) dict
+                    North ->
+                        let
+                            leftBelow = Maybe.withDefault [] <| Dict.get ((fromX), (fromY+1)) dict
+                            rightBelow = Maybe.withDefault [] <| Dict.get ((fromX+1), (fromY+1)) dict
+                        in
+                            Dict.insert ((fromX+1), (fromY+1)) (List.filter (\dir -> dir /= West) rightBelow) <|
+                            Dict.insert ((fromX), (fromY+1)) (List.filter (\dir -> dir /= East) leftBelow) dict
+    in
+        Dict.foldl (\k v dict -> remove k v dict) initialEdges primal
+
                     
 nextDir: (Int, Int) -> Int -> Random.Generator MazeDirection
 nextDir (x,y) size =
@@ -338,8 +422,8 @@ turnRight p = {p|theta=p.theta-(3*pi/180)}
 moveForward: Player -> Player
 moveForward p =
     let
-        newX = p.x + 0.5*(cos p.theta)
-        newY = p.y + 0.5*(sin p.theta)
+        newX = p.x + 0.15*(cos p.theta)
+        newY = p.y + 0.15*(sin p.theta)
     in
         {p| x = newX, y = newY}
 
@@ -350,15 +434,57 @@ moveBackward p =
         newY = p.y - 0.5*(sin p.theta)
     in
         {p| x = newX, y = newY}
+
+dualMazeView: MazeModel -> List (Scene3d.Entity coordinates)
+dualMazeView mazemodel =
+    let
+        paths: (Int, Int) -> List MazeDirection -> List (Scene3d.Entity coordinates)
+        paths (x,y) dirList =
+            let
+                fromX = x
+                fromY = y
+                materialBrown =
+                     Material.nonmetal
+                         { baseColor = Color.brown
+                         , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                         }
+            in
+            List.map (\dir -> case dir of
+                                  East -> Scene3d.block materialBrown
+                                          <| Block3d.from
+                                              (Point3d.meters (toFloat fromX) ((toFloat fromY)-0.1) 0)
+                                              (Point3d.meters (toFloat (fromX+1)) ((toFloat fromY)+0.1) 0.3)
+                                  West -> Scene3d.block materialBrown
+                                          <| Block3d.from
+                                              (Point3d.meters (toFloat fromX) ((toFloat fromY)-0.1) 0)
+                                              (Point3d.meters (toFloat (fromX-1)) ((toFloat fromY)+0.1) 0.3)
+                                  North -> Scene3d.block materialBrown
+                                           <| Block3d.from
+                                               (Point3d.meters ((toFloat fromX)-0.1) ((toFloat fromY)) 0)
+                                               (Point3d.meters ((toFloat fromX)+0.1) ((toFloat fromY)+1) 0.3)
+                                  South -> Scene3d.block materialBrown
+                                          <| Block3d.from
+                                               (Point3d.meters ((toFloat fromX)-0.1) ((toFloat fromY)) 0)
+                                               (Point3d.meters ((toFloat fromX)+0.1) ((toFloat fromY)-1) 0.3)
+
+                     ) dirList
+    in
+        Dict.foldl
+            (\(x,y) dirs list ->
+                 (paths (x,y) dirs)++list
+            ) [] (mazemodel.dual)
+
             
 view: Model -> Html Msg
 view model =
     div [align "center"
         ]
     (case model.me.id of
-         Nothing -> [input
+         Nothing -> [div []
+                         [text "Room Id は友達と決めてください。Nicknameは適当に決めてください。"]
+                    ,input
                          [ type_ "text"
-                         , placeholder "Room"
+                         , placeholder "Room ID"
                          , onInput RoomChanged
                          , on "keydown" (ifIsEnter Join)
                          , value model.room
@@ -366,7 +492,7 @@ view model =
                          []
                     ,input
                          [ type_ "text"
-                         , placeholder "Name"
+                         , placeholder "Nickname"
                          , onInput NameChanged
                          , value model.me.name
                          ]
@@ -386,6 +512,18 @@ view model =
                          , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
                          }
 
+                 materialGray =
+                     Material.nonmetal
+                         { baseColor = Color.gray
+                         , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                         }
+
+                 materialBrown =
+                     Material.nonmetal
+                         { baseColor = Color.brown
+                         , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                         }
+         
                  materialBlack =
                      Material.nonmetal
                          { baseColor = Color.black
@@ -450,7 +588,15 @@ view model =
                           (Length.meters 0.22)
 
                  robot = Scene3d.group [cyl,left,right,lb,rb]
-                    
+
+
+                 --wall = Scene3d.block materialBrown
+                 --       <| Block3d.from
+                 --           (Point3d.meters 0 -0.1 0)
+                 --           (Point3d.meters 2 0.1 0.5)
+
+                 walls = Debug.log "" <| dualMazeView model.mazeData
+         
                  -- Define a camera as usual
                  camera =
                      let
@@ -466,7 +612,7 @@ view model =
                                    , eyePoint = (Point3d.meters ex ey 1.0 )
                                    , upDirection = Direction3d.positiveZ
                                    }
-                             , verticalFieldOfView = Angle.degrees 40
+                             , verticalFieldOfView = Angle.degrees 60
                              }
                  relativePos event =
                      {x=Tuple.first event.pointer.offsetPos
@@ -479,7 +625,7 @@ view model =
                         , clipDepth = Length.centimeters 0.5
                         , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
                         , background = Scene3d.transparentBackground
-                        , entities = plane::(List.map playerView model.others)
+                        , entities = [plane]++walls++(List.map playerView model.others)
                         , shadows = True
                         , upDirection = Direction3d.z
                         , sunlightDirection = Direction3d.yz (Angle.degrees -120)
