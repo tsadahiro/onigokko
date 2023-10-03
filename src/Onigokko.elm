@@ -480,29 +480,30 @@ wallView mazemodel =
                 { baseColor = Color.brown
                 , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
                 }
+        wallHeight=0.7
         wallEntity: {x:Int, y:Int, dir:Int} -> Scene3d.Entity coordinates
         wallEntity wall =
             case wall.dir of
                 0 -> Scene3d.block materialBrown -- East
                         <| Block3d.from
                             (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-0.1) 0)
-                            (Point3d.meters (toFloat ((3*wall.x)+3)) ((toFloat (3*wall.y))+0.1) 0.3)
+                            (Point3d.meters (toFloat ((3*wall.x)+3)) ((toFloat (3*wall.y))+0.1) wallHeight)
                 2 -> Scene3d.block materialBrown -- West
                      <| Block3d.from
                          (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-0.1) 0)
-                         (Point3d.meters (toFloat ((3*wall.x)-3)) ((toFloat (3*wall.y))+0.1) 0.3)
+                         (Point3d.meters (toFloat ((3*wall.x)-3)) ((toFloat (3*wall.y))+0.1) wallHeight)
                 1 -> Scene3d.block materialBrown -- North
                      <| Block3d.from
                          (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
-                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))+3) 0.3)
+                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))+3) wallHeight)
                 3 -> Scene3d.block materialBrown -- South
                      <| Block3d.from
                          (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
-                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-3) 0.3)
+                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-3) wallHeight)
                 _ -> Scene3d.block materialBrown -- South
                      <| Block3d.from
                          (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
-                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-1) 0.3)
+                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-1) wallHeight)
     in
         List.map wallEntity mazemodel.dual
 
@@ -620,7 +621,7 @@ view model =
                           )
                           (Length.meters 0.22)
 
-                 robot = playerView (Player (Just "") "test" 0.5 0.5 0 False)
+                 robot = playerView (Player (Just "") "test" 1.5 1.5 0 False)
                  --Scene3d.group [cyl,left,right,lb,rb]
 
 
@@ -646,7 +647,7 @@ view model =
                                    , eyePoint = (Point3d.meters ex ey 1.0 )
                                    , upDirection = Direction3d.positiveZ
                                    }
-                             , verticalFieldOfView = Angle.degrees 60
+                             , verticalFieldOfView = Angle.degrees 90
                              }
                  relativePos event =
                      {x=Tuple.first event.pointer.offsetPos
@@ -657,7 +658,7 @@ view model =
                  , Scene3d.sunny
                         { camera = camera
                         , clipDepth = Length.centimeters 0.5
-                        , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
+                        , dimensions = ( Pixels.int 1200, Pixels.int 1000 )
                         , background = Scene3d.transparentBackground
                         , entities = [plane]++[robot]++walls++(List.map playerView model.others)
                         , shadows = True
@@ -735,7 +736,7 @@ playerView player =
                       (player.y + 0.37*(sin (player.theta-(pi/9))))
                       0.8
                  )
-                 (Length.meters 0.18)
+                 (Length.meters 0.185)
         rb = Scene3d.sphere materialBlack
              <| Sphere3d.atPoint
                  (Point3d.meters
@@ -743,7 +744,7 @@ playerView player =
                       (player.y + 0.37*(sin (player.theta+(pi/9))))
                       0.8
                  )
-                 (Length.meters 0.18)
+                 (Length.meters 0.185)
 
         robot = Scene3d.group [cyl,left,right,lb,rb,tsubaR, tsubaL]
     in

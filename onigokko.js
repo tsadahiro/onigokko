@@ -12475,7 +12475,7 @@ var $author$project$Onigokko$playerView = function (player) {
 				player.x + (0.37 * $elm$core$Basics$cos(player.theta + ($elm$core$Basics$pi / 9))),
 				player.y + (0.37 * $elm$core$Basics$sin(player.theta + ($elm$core$Basics$pi / 9))),
 				0.8),
-			$ianmackenzie$elm_units$Length$meters(0.18)));
+			$ianmackenzie$elm_units$Length$meters(0.185)));
 	var material = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
 		{baseColor: $avh4$elm_color$Color$blue, roughness: 0.4});
 	var tsubaL = A2(
@@ -12521,7 +12521,7 @@ var $author$project$Onigokko$playerView = function (player) {
 				player.x + (0.37 * $elm$core$Basics$cos(player.theta - ($elm$core$Basics$pi / 9))),
 				player.y + (0.37 * $elm$core$Basics$sin(player.theta - ($elm$core$Basics$pi / 9))),
 				0.8),
-			$ianmackenzie$elm_units$Length$meters(0.18)));
+			$ianmackenzie$elm_units$Length$meters(0.185)));
 	var cyl = A2(
 		$ianmackenzie$elm_3d_scene$Scene3d$cylinder,
 		material,
@@ -14318,6 +14318,7 @@ var $ianmackenzie$elm_3d_scene$Scene3d$transparentBackground = $ianmackenzie$elm
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $author$project$Onigokko$wallView = function (mazemodel) {
+	var wallHeight = 0.7;
 	var materialBrown = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
 		{baseColor: $avh4$elm_color$Color$brown, roughness: 0.4});
 	var wallEntity = function (wall) {
@@ -14330,7 +14331,7 @@ var $author$project$Onigokko$wallView = function (mazemodel) {
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
 						A3($ianmackenzie$elm_geometry$Point3d$meters, 3 * wall.x, (3 * wall.y) - 0.1, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 3, (3 * wall.y) + 0.1, 0.3)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 3, (3 * wall.y) + 0.1, wallHeight)));
 			case 2:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
@@ -14338,7 +14339,7 @@ var $author$project$Onigokko$wallView = function (mazemodel) {
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
 						A3($ianmackenzie$elm_geometry$Point3d$meters, 3 * wall.x, (3 * wall.y) - 0.1, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 3, (3 * wall.y) + 0.1, 0.3)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 3, (3 * wall.y) + 0.1, wallHeight)));
 			case 1:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
@@ -14346,7 +14347,7 @@ var $author$project$Onigokko$wallView = function (mazemodel) {
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
 						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 0.1, 3 * wall.y, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) + 3, 0.3)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) + 3, wallHeight)));
 			case 3:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
@@ -14354,7 +14355,7 @@ var $author$project$Onigokko$wallView = function (mazemodel) {
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
 						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 0.1, 3 * wall.y, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) - 3, 0.3)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) - 3, wallHeight)));
 			default:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
@@ -14362,7 +14363,7 @@ var $author$project$Onigokko$wallView = function (mazemodel) {
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
 						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 0.1, 3 * wall.y, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) - 1, 0.3)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) - 1, wallHeight)));
 		}
 	};
 	return A2($elm$core$List$map, wallEntity, mazemodel.dual);
@@ -14439,8 +14440,8 @@ var $author$project$Onigokko$view = function (model) {
 						$author$project$Onigokko$Player,
 						$elm$core$Maybe$Just(''),
 						'test',
-						0.5,
-						0.5,
+						1.5,
+						1.5,
 						0,
 						false));
 				var relativePos = function (event) {
@@ -14532,7 +14533,7 @@ var $author$project$Onigokko$view = function (model) {
 					var fx = ex + (5 * $elm$core$Basics$cos(model.me.theta));
 					return $ianmackenzie$elm_3d_camera$Camera3d$perspective(
 						{
-							verticalFieldOfView: $ianmackenzie$elm_units$Angle$degrees(60),
+							verticalFieldOfView: $ianmackenzie$elm_units$Angle$degrees(90),
 							viewpoint: $ianmackenzie$elm_3d_camera$Viewpoint3d$lookAt(
 								{
 									eyePoint: A3($ianmackenzie$elm_geometry$Point3d$meters, ex, ey, 1.0),
@@ -14569,7 +14570,7 @@ var $author$project$Onigokko$view = function (model) {
 							camera: camera,
 							clipDepth: $ianmackenzie$elm_units$Length$centimeters(0.5),
 							dimensions: _Utils_Tuple2(
-								$ianmackenzie$elm_units$Pixels$int(1000),
+								$ianmackenzie$elm_units$Pixels$int(1200),
 								$ianmackenzie$elm_units$Pixels$int(1000)),
 							entities: _Utils_ap(
 								_List_fromArray(
