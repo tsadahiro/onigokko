@@ -43,11 +43,15 @@ main = Browser.element {init = init
 
 -- send
 port join : String -> Cmd msg
+port loggedIn : Player  ->  Cmd msg
 port moved : Player  ->  Cmd msg
+port wallsCompleted : {host:Player, walls:List {x:Int, y:Int, dir:Int}}   ->  Cmd msg
 
 -- receive
 port skywayId : ({id:String, num:Int} -> msg) -> Sub msg
+port othersLogin : (Player -> msg) -> Sub msg
 port othersMove : (Player -> msg) -> Sub msg
+port wallInfo: (List {x:Int, y:Int, dir:Int} -> msg) -> Sub msg
 port handsReceiver : (List {x:Float, y:Float, z:Float} -> msg) -> Sub msg
        
 type WorldCoordinates = WorldCoordinates
@@ -69,6 +73,7 @@ type alias Model = {me: Player
                    }
     
 type Msg = KeyPressed Direction
+         | OthersLoggedIn Player
          | OthersMoved Player
          | IdDefined {id:String, num:Int}
          | RoomChanged String
@@ -78,6 +83,8 @@ type Msg = KeyPressed Direction
          | KeyDown Int
          | Hands (List {x:Float, y:Float, z:Float})
          | NextGen MazeDirection
+         | WallBuilt (List {x:Int, y:Int, dir:Int})
+         | SendWall (List {x:Int, y:Int, dir:Int}) Time.Posix
            
 type Direction = Left
                | Right
@@ -91,7 +98,8 @@ type alias MazeModel = {maze: Maze
                        ,outOfTree: (List (Int, Int))
                        ,currentPos: (Int, Int)
                        ,lerwStart: (Int, Int)
-                       ,dual: Dict (Int, Int) (List MazeDirection)
+                       --,dual: Dict (Int, Int) (List MazeDirection)
+                       ,dual: List {x:Int, y:Int, dir:Int}
                        }
 
 type MazeDirection = North
@@ -100,7 +108,7 @@ type MazeDirection = North
                    | West
 
 
-mazeSize = 10                     
+mazeSize = 5
 init: () -> (Model, Cmd Msg)
 init _ =
     ({me = {id=Nothing,name="",x=5,y=5,theta=0,oni=False}
@@ -112,7 +120,7 @@ init _ =
                  ,outOfTree = vertexList mazeSize
                  ,currentPos = (0,0)
                  ,lerwStart = (0,0)
-                 ,dual = Dict.empty
+                 ,dual = []
                  }
      }
     ,Random.generate RandomPlayerGenerated randomPlayer)
@@ -121,8 +129,8 @@ randomPlayer: Random.Generator Player
 randomPlayer =
     Random.map3
         (\x y theta ->
-             {x=x
-             ,y=y
+             {x=(toFloat (round x))+1.5
+             ,y=(toFloat (round y))+1.5
              ,theta=theta
              ,id=Nothing
              ,oni=False
@@ -163,12 +171,12 @@ update msg model =
                 setId player id = {player|id = Just id}
             in
                 ({model | me = setId model.me info.id
-                 ,host = (info.num == 1)
+                 ,host = Debug.log "host?" <| (info.num == 1)
                  }
                 , if info.num == 1 then
                       Random.generate NextGen (nextDir (0,0) mazeSize)
                   else
-                      moved model.me
+                      loggedIn model.me
                 )
         KeyDown keycode ->
             let
@@ -232,15 +240,35 @@ update msg model =
                     _ -> (model, Cmd.none)
         OthersMoved other ->
             let
-                players = Debug.log "others" <| other::(List.filter (\player -> player.id /= other.id) model.others)
+                players = other::(List.filter (\player -> player.id /= other.id) model.others)
             in
                 ({model|others=players}, Cmd.none)
+        OthersLoggedIn other ->
+            let
+                players = Debug.log "others logined" <| other::(List.filter (\player -> player.id /= other.id) model.others)
+            in
+                ({model|others=players}
+                ,wallsCompleted {host=model.me, walls=model.mazeData.dual}
+                )
+        SendWall walls t ->
+            (model
+            ,wallsCompleted {host=model.me, walls=model.mazeData.dual}
+            ) 
+        WallBuilt walls ->
+            if model.host then
+                (model, Cmd.none)
+            else
+                let
+                    mazemodel = model.mazeData
+                    newMaze = {mazemodel|dual = walls}
+                in
+                    ({model|mazeData=newMaze}, Cmd.none)
         NextGen dir ->
             let
                 newMaze = addToMaze dir model.mazeData
                 completed = (List.length newMaze.outOfTree) == 0
                 newMazeWithDual = if completed then
-                                      {newMaze | dual = (Debug.log "dual maze" <| dual newMaze.maze)}
+                                      {newMaze | dual = dual newMaze.maze}
                                   else
                                       newMaze
             in
@@ -249,19 +277,17 @@ update msg model =
                      Random.generate
                          NextGen (nextDir newMaze.currentPos mazeSize)
                  else
-                     let
-                         dummy = Debug.log "completed" <| model.mazeData.maze
-                     in
-                         moved model.me
+                     wallsCompleted {host=model.me, walls=model.mazeData.dual}
                 )
         Hands points ->
-            let
-                dummy = Debug.log "" points
-            in
+            --let
+                --dummy = Debug.log "" points
+            --in
                 (model, Cmd.none)
 
 
-dual: Maze -> Dict (Int, Int) (List MazeDirection)
+--dual: Maze -> Dict (Int, Int) (List MazeDirection)
+dual: Maze -> List {x:Int, y:Int, dir:Int}
 dual primal =
     let
         dualV = List.concat <|
@@ -328,7 +354,21 @@ dual primal =
                             Dict.insert ((fromX+1), (fromY+1)) (List.filter (\dir -> dir /= West) rightBelow) <|
                             Dict.insert ((fromX), (fromY+1)) (List.filter (\dir -> dir /= East) leftBelow) dict
     in
-        Dict.foldl (\k v dict -> remove k v dict) initialEdges primal
+            Dict.foldl
+                (\(x,y) dirs dirList->
+                     dirList++
+                     (List.map (\dir -> {x=x
+                                       ,y=y
+                                       ,dir= case dir of
+                                                 North -> 1
+                                                 South -> 3
+                                                 East -> 0
+                                                 West -> 2
+                                       }
+                              )
+                     dirs)
+                )[] <|
+                Dict.foldl (\k v dict -> remove k v dict) initialEdges primal
 
                     
 nextDir: (Int, Int) -> Int -> Random.Generator MazeDirection
@@ -383,12 +423,8 @@ addToMaze dir model =
             if (Tuple.first p) > mazeSize then
                 outOfTree
             else if List.member p outOfTree then
-                     let
-                         dummy = Debug.log "" p
-                     in
-                         Debug.log "out of tree" <|
-                             delete (Maybe.withDefault (mazeSize+1,0) <| Dict.get p newMaze)
-                                 newMaze  (List.filter (\q -> p /= q) outOfTree)
+                     delete (Maybe.withDefault (mazeSize+1,0) <| Dict.get p newMaze)
+                         newMaze  (List.filter (\q -> p /= q) outOfTree)
                  else
                      outOfTree
         newOutOfTree = if List.member next model.outOfTree then
@@ -435,44 +471,41 @@ moveBackward p =
     in
         {p| x = newX, y = newY}
 
-dualMazeView: MazeModel -> List (Scene3d.Entity coordinates)
-dualMazeView mazemodel =
-    let
-        paths: (Int, Int) -> List MazeDirection -> List (Scene3d.Entity coordinates)
-        paths (x,y) dirList =
-            let
-                fromX = x
-                fromY = y
-                materialBrown =
-                     Material.nonmetal
-                         { baseColor = Color.brown
-                         , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
-                         }
-            in
-            List.map (\dir -> case dir of
-                                  East -> Scene3d.block materialBrown
-                                          <| Block3d.from
-                                              (Point3d.meters (toFloat fromX) ((toFloat fromY)-0.1) 0)
-                                              (Point3d.meters (toFloat (fromX+1)) ((toFloat fromY)+0.1) 0.3)
-                                  West -> Scene3d.block materialBrown
-                                          <| Block3d.from
-                                              (Point3d.meters (toFloat fromX) ((toFloat fromY)-0.1) 0)
-                                              (Point3d.meters (toFloat (fromX-1)) ((toFloat fromY)+0.1) 0.3)
-                                  North -> Scene3d.block materialBrown
-                                           <| Block3d.from
-                                               (Point3d.meters ((toFloat fromX)-0.1) ((toFloat fromY)) 0)
-                                               (Point3d.meters ((toFloat fromX)+0.1) ((toFloat fromY)+1) 0.3)
-                                  South -> Scene3d.block materialBrown
-                                          <| Block3d.from
-                                               (Point3d.meters ((toFloat fromX)-0.1) ((toFloat fromY)) 0)
-                                               (Point3d.meters ((toFloat fromX)+0.1) ((toFloat fromY)-1) 0.3)
 
-                     ) dirList
+wallView: MazeModel ->  List (Scene3d.Entity coordinates)
+wallView mazemodel =
+    let
+        materialBrown =
+            Material.nonmetal
+                { baseColor = Color.brown
+                , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
+                }
+        wallEntity: {x:Int, y:Int, dir:Int} -> Scene3d.Entity coordinates
+        wallEntity wall =
+            case wall.dir of
+                0 -> Scene3d.block materialBrown -- East
+                        <| Block3d.from
+                            (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-0.1) 0)
+                            (Point3d.meters (toFloat ((3*wall.x)+3)) ((toFloat (3*wall.y))+0.1) 0.3)
+                2 -> Scene3d.block materialBrown -- West
+                     <| Block3d.from
+                         (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-0.1) 0)
+                         (Point3d.meters (toFloat ((3*wall.x)-3)) ((toFloat (3*wall.y))+0.1) 0.3)
+                1 -> Scene3d.block materialBrown -- North
+                     <| Block3d.from
+                         (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
+                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))+3) 0.3)
+                3 -> Scene3d.block materialBrown -- South
+                     <| Block3d.from
+                         (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
+                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-3) 0.3)
+                _ -> Scene3d.block materialBrown -- South
+                     <| Block3d.from
+                         (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
+                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-1) 0.3)
     in
-        Dict.foldl
-            (\(x,y) dirs list ->
-                 (paths (x,y) dirs)++list
-            ) [] (mazemodel.dual)
+        List.map wallEntity mazemodel.dual
+
 
             
 view: Model -> Html Msg
@@ -551,43 +584,44 @@ view model =
                        <| Cylinder3d.along Axis3d.z
                            { start = Length.meters 0
                            , end = Length.meters 1.5
-                           , radius = Length.meters 1
+                           , radius = Length.meters 0.3
                            }
                   
                  left = Scene3d.sphere materialWhite
                         <| Sphere3d.atPoint
                             (Point3d.meters
-                                 (0.8*(cos (model.me.theta+(-pi/10))))
-                                 (0.8*(sin (model.me.theta+(-pi/10))))
+                                 (0.7*(cos (model.me.theta+(-pi/10))))
+                                 (0.7*(sin (model.me.theta+(-pi/10))))
                                  1
                             )
                             (Length.meters 0.3)
                  right = Scene3d.sphere materialWhite
                          <| Sphere3d.atPoint
                              (Point3d.meters
-                                  (0.8*(cos (model.me.theta+(pi/10))))
-                                  (0.8*(sin (model.me.theta+(pi/10))))
+                                  (0.7*(cos (model.me.theta+(pi/10))))
+                                  (0.7*(sin (model.me.theta+(pi/10))))
                                   1
                              )
                              (Length.meters 0.3)
                  lb = Scene3d.sphere materialBlack
                       <| Sphere3d.atPoint
                           (Point3d.meters
-                               (0.9*(cos (model.me.theta-(pi/10))))
-                               (0.9*(sin (model.me.theta-(pi/10))))
+                               (0.8*(cos (model.me.theta-(pi/10))))
+                               (0.8*(sin (model.me.theta-(pi/10))))
                                1
                           )
                           (Length.meters 0.22)
                  rb = Scene3d.sphere materialBlack
                       <| Sphere3d.atPoint
                           (Point3d.meters
-                               (0.9*(cos (model.me.theta+(pi/10))))
-                               (0.9*(sin (model.me.theta+(pi/10))))
+                               (0.8*(cos (model.me.theta+(pi/10))))
+                               (0.8*(sin (model.me.theta+(pi/10))))
                                1
                           )
                           (Length.meters 0.22)
 
-                 robot = Scene3d.group [cyl,left,right,lb,rb]
+                 robot = playerView (Player (Just "") "test" 0.5 0.5 0 False)
+                 --Scene3d.group [cyl,left,right,lb,rb]
 
 
                  --wall = Scene3d.block materialBrown
@@ -595,7 +629,7 @@ view model =
                  --           (Point3d.meters 0 -0.1 0)
                  --           (Point3d.meters 2 0.1 0.5)
 
-                 walls = Debug.log "" <| dualMazeView model.mazeData
+                 walls = wallView model.mazeData
          
                  -- Define a camera as usual
                  camera =
@@ -625,7 +659,7 @@ view model =
                         , clipDepth = Length.centimeters 0.5
                         , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
                         , background = Scene3d.transparentBackground
-                        , entities = [plane]++walls++(List.map playerView model.others)
+                        , entities = [plane]++[robot]++walls++(List.map playerView model.others)
                         , shadows = True
                         , upDirection = Direction3d.z
                         , sunlightDirection = Direction3d.yz (Angle.degrees -120)
@@ -651,49 +685,67 @@ playerView player =
                 { baseColor = Color.black
                 , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
                 }
+
+              
+        tsubaL = Scene3d.block material
+              <| Block3d.from
+                  (Point3d.meters player.x player.y 1.02)
+                  (Point3d.meters 
+                       (player.x + 1.0*(cos (player.theta+pi/6)))
+                       (player.y + 1.0*(sin (player.theta+pi/6)))
+                       1.05
+                  )
+        tsubaR = Scene3d.block material
+              <| Block3d.from
+                  (Point3d.meters player.x player.y 1.02)
+                  (Point3d.meters 
+                       (player.x + 1.0*(cos (player.theta-pi/6)))
+                       (player.y + 1.0*(sin (player.theta-pi/6)))
+                       1.05
+                  )
                 
         cyl = Scene3d.cylinder material
               <| Cylinder3d.along
                   (Axis3d.through (Point3d.meters player.x player.y 0) Direction3d.z)
                   { start = Length.meters 0
                   , end = Length.meters 1.5
-                  , radius = Length.meters 1
+                  , radius = Length.meters 0.5
                   }
                   
         left = Scene3d.sphere materialWhite
                <| Sphere3d.atPoint
                    (Point3d.meters
-                        (player.x + 0.8*(cos (player.theta+(-pi/10))))
-                        (player.y + 0.8*(sin (player.theta+(-pi/10))))
-                        1
+                        (player.x + 0.29*(cos (player.theta+(-pi/9))))
+                        (player.y + 0.29*(sin (player.theta+(-pi/9))))
+                        0.8
                    )
-                   (Length.meters 0.3)
+                   (Length.meters 0.25)
         right = Scene3d.sphere materialWhite
                 <| Sphere3d.atPoint
                     (Point3d.meters
-                         (player.x + 0.8*(cos (player.theta+(pi/10))))
-                         (player.y + 0.8*(sin (player.theta+(pi/10))))
-                         1
+                         (player.x + 0.29*(cos (player.theta+(pi/9))))
+                         (player.y + 0.29*(sin (player.theta+(pi/9))))
+                         0.8
                     )
-                    (Length.meters 0.3)
+                    (Length.meters 0.25)
         lb = Scene3d.sphere materialBlack
              <| Sphere3d.atPoint
                  (Point3d.meters
-                      (player.x + 0.9*(cos (player.theta-(pi/10))))
-                      (player.y + 0.9*(sin (player.theta-(pi/10))))
-                      1
+                      (player.x + 0.37*(cos (player.theta-(pi/9))))
+                      (player.y + 0.37*(sin (player.theta-(pi/9))))
+                      0.8
                  )
-                 (Length.meters 0.22)
+                 (Length.meters 0.18)
         rb = Scene3d.sphere materialBlack
              <| Sphere3d.atPoint
                  (Point3d.meters
-                      (player.x + 0.9*(cos (player.theta+(pi/10))))
-                      (player.y + 0.9*(sin (player.theta+(pi/10))))
-                      1
+                      (player.x + 0.37*(cos (player.theta+(pi/9))))
+                      (player.y + 0.37*(sin (player.theta+(pi/9))))
+                      0.8
                  )
-                 (Length.meters 0.22)
+                 (Length.meters 0.18)
 
-        robot = Scene3d.group [cyl,left,right,lb,rb]
+        robot = Scene3d.group [cyl,left,right,lb,rb,tsubaR, tsubaL]
     in
         robot
         
@@ -723,9 +775,12 @@ subscriptions: Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [othersMove OthersMoved
+        ,othersLogin OthersLoggedIn
         ,skywayId IdDefined
         ,handsReceiver Hands
-        --,Browser.Events.onKeyPress keyDecoder 
+        --,Browser.Events.onKeyPress keyDecoder
+        ,wallInfo WallBuilt
+        ,Time.every 5000 (SendWall model.mazeData.dual)
         ]
 
 ifIsEnter : msg -> D.Decoder msg

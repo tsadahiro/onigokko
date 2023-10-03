@@ -91,7 +91,7 @@ const token = new SkyWayAuthToken({
 
 
     const data = await SkyWayStreamFactory.createDataStream();
-    //console.log(app.ports);
+    console.log(app.ports);
     app.ports.moved.subscribe(function(p) {
 	//console.log(p)
 	data.write({class:"move",player:p});
