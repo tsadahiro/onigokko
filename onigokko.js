@@ -7100,6 +7100,7 @@ var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Onigokko$RandomPlayerGenerated = function (a) {
 	return {$: 'RandomPlayerGenerated', a: a};
 };
+var $author$project$Onigokko$Waiting = {$: 'Waiting'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$random$Random$Generate = function (a) {
@@ -7326,6 +7327,9 @@ var $author$project$Onigokko$vertexList = function (s) {
 var $author$project$Onigokko$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
+			angle: 0,
+			elapsed: 0,
+			hands: _List_Nil,
 			host: false,
 			mazeData: {
 				currentPos: _Utils_Tuple2(0, 0),
@@ -7336,8 +7340,13 @@ var $author$project$Onigokko$init = function (_v0) {
 			},
 			me: {id: $elm$core$Maybe$Nothing, name: '', oni: false, theta: 0, x: 5, y: 5},
 			name: '',
+			onHomePosition: false,
 			others: _List_Nil,
-			room: ''
+			oyaMoved: false,
+			prevHands: _List_Nil,
+			room: '',
+			start: $elm$core$Maybe$Nothing,
+			state: $author$project$Onigokko$Waiting
 		},
 		A2($elm$random$Random$generate, $author$project$Onigokko$RandomPlayerGenerated, $author$project$Onigokko$randomPlayer));
 };
@@ -7346,6 +7355,9 @@ var $author$project$Onigokko$Hands = function (a) {
 };
 var $author$project$Onigokko$IdDefined = function (a) {
 	return {$: 'IdDefined', a: a};
+};
+var $author$project$Onigokko$LocateHands = function (a) {
+	return {$: 'LocateHands', a: a};
 };
 var $author$project$Onigokko$OthersLoggedIn = function (a) {
 	return {$: 'OthersLoggedIn', a: a};
@@ -7361,6 +7373,11 @@ var $author$project$Onigokko$WallBuilt = function (a) {
 	return {$: 'WallBuilt', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
 var $elm$time$Time$Every = F2(
 	function (a, b) {
 		return {$: 'Every', a: a, b: b};
@@ -7782,6 +7799,137 @@ var $author$project$Onigokko$handsReceiver = _Platform_incomingPort(
 					A2($elm$json$Json$Decode$field, 'y', $elm$json$Json$Decode$float));
 			},
 			A2($elm$json$Json$Decode$field, 'z', $elm$json$Json$Decode$float))));
+var $ianmackenzie$elm_units$Quantity$Quantity = function (a) {
+	return {$: 'Quantity', a: a};
+};
+var $ianmackenzie$elm_units$Duration$seconds = function (numSeconds) {
+	return $ianmackenzie$elm_units$Quantity$Quantity(numSeconds);
+};
+var $ianmackenzie$elm_units$Duration$milliseconds = function (numMilliseconds) {
+	return $ianmackenzie$elm_units$Duration$seconds(0.001 * numMilliseconds);
+};
+var $elm$browser$Browser$AnimationManager$Delta = function (a) {
+	return {$: 'Delta', a: a};
+};
+var $elm$browser$Browser$AnimationManager$State = F3(
+	function (subs, request, oldTime) {
+		return {oldTime: oldTime, request: request, subs: subs};
+	});
+var $elm$browser$Browser$AnimationManager$init = $elm$core$Task$succeed(
+	A3($elm$browser$Browser$AnimationManager$State, _List_Nil, $elm$core$Maybe$Nothing, 0));
+var $elm$browser$Browser$AnimationManager$now = _Browser_now(_Utils_Tuple0);
+var $elm$browser$Browser$AnimationManager$rAF = _Browser_rAF(_Utils_Tuple0);
+var $elm$browser$Browser$AnimationManager$onEffects = F3(
+	function (router, subs, _v0) {
+		var request = _v0.request;
+		var oldTime = _v0.oldTime;
+		var _v1 = _Utils_Tuple2(request, subs);
+		if (_v1.a.$ === 'Nothing') {
+			if (!_v1.b.b) {
+				var _v2 = _v1.a;
+				return $elm$browser$Browser$AnimationManager$init;
+			} else {
+				var _v4 = _v1.a;
+				return A2(
+					$elm$core$Task$andThen,
+					function (pid) {
+						return A2(
+							$elm$core$Task$andThen,
+							function (time) {
+								return $elm$core$Task$succeed(
+									A3(
+										$elm$browser$Browser$AnimationManager$State,
+										subs,
+										$elm$core$Maybe$Just(pid),
+										time));
+							},
+							$elm$browser$Browser$AnimationManager$now);
+					},
+					$elm$core$Process$spawn(
+						A2(
+							$elm$core$Task$andThen,
+							$elm$core$Platform$sendToSelf(router),
+							$elm$browser$Browser$AnimationManager$rAF)));
+			}
+		} else {
+			if (!_v1.b.b) {
+				var pid = _v1.a.a;
+				return A2(
+					$elm$core$Task$andThen,
+					function (_v3) {
+						return $elm$browser$Browser$AnimationManager$init;
+					},
+					$elm$core$Process$kill(pid));
+			} else {
+				return $elm$core$Task$succeed(
+					A3($elm$browser$Browser$AnimationManager$State, subs, request, oldTime));
+			}
+		}
+	});
+var $elm$browser$Browser$AnimationManager$onSelfMsg = F3(
+	function (router, newTime, _v0) {
+		var subs = _v0.subs;
+		var oldTime = _v0.oldTime;
+		var send = function (sub) {
+			if (sub.$ === 'Time') {
+				var tagger = sub.a;
+				return A2(
+					$elm$core$Platform$sendToApp,
+					router,
+					tagger(
+						$elm$time$Time$millisToPosix(newTime)));
+			} else {
+				var tagger = sub.a;
+				return A2(
+					$elm$core$Platform$sendToApp,
+					router,
+					tagger(newTime - oldTime));
+			}
+		};
+		return A2(
+			$elm$core$Task$andThen,
+			function (pid) {
+				return A2(
+					$elm$core$Task$andThen,
+					function (_v1) {
+						return $elm$core$Task$succeed(
+							A3(
+								$elm$browser$Browser$AnimationManager$State,
+								subs,
+								$elm$core$Maybe$Just(pid),
+								newTime));
+					},
+					$elm$core$Task$sequence(
+						A2($elm$core$List$map, send, subs)));
+			},
+			$elm$core$Process$spawn(
+				A2(
+					$elm$core$Task$andThen,
+					$elm$core$Platform$sendToSelf(router),
+					$elm$browser$Browser$AnimationManager$rAF)));
+	});
+var $elm$browser$Browser$AnimationManager$Time = function (a) {
+	return {$: 'Time', a: a};
+};
+var $elm$browser$Browser$AnimationManager$subMap = F2(
+	function (func, sub) {
+		if (sub.$ === 'Time') {
+			var tagger = sub.a;
+			return $elm$browser$Browser$AnimationManager$Time(
+				A2($elm$core$Basics$composeL, func, tagger));
+		} else {
+			var tagger = sub.a;
+			return $elm$browser$Browser$AnimationManager$Delta(
+				A2($elm$core$Basics$composeL, func, tagger));
+		}
+	});
+_Platform_effectManagers['Browser.AnimationManager'] = _Platform_createManager($elm$browser$Browser$AnimationManager$init, $elm$browser$Browser$AnimationManager$onEffects, $elm$browser$Browser$AnimationManager$onSelfMsg, 0, $elm$browser$Browser$AnimationManager$subMap);
+var $elm$browser$Browser$AnimationManager$subscription = _Platform_leaf('Browser.AnimationManager');
+var $elm$browser$Browser$AnimationManager$onAnimationFrameDelta = function (tagger) {
+	return $elm$browser$Browser$AnimationManager$subscription(
+		$elm$browser$Browser$AnimationManager$Delta(tagger));
+};
+var $elm$browser$Browser$Events$onAnimationFrameDelta = $elm$browser$Browser$AnimationManager$onAnimationFrameDelta;
 var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$null = _Json_decodeNull;
 var $elm$json$Json$Decode$oneOf = _Json_oneOf;
@@ -7917,8 +8065,13 @@ var $author$project$Onigokko$subscriptions = function (model) {
 				A2(
 				$elm$time$Time$every,
 				5000,
-				$author$project$Onigokko$SendWall(model.mazeData.dual))
+				$author$project$Onigokko$SendWall(model.mazeData.dual)),
+				$elm$browser$Browser$Events$onAnimationFrameDelta(
+				A2($elm$core$Basics$composeR, $ianmackenzie$elm_units$Duration$milliseconds, $author$project$Onigokko$LocateHands))
 			]));
+};
+var $author$project$Onigokko$KeyDown = function (a) {
+	return {$: 'KeyDown', a: a};
 };
 var $author$project$Onigokko$NextGen = function (a) {
 	return {$: 'NextGen', a: a};
@@ -8030,6 +8183,34 @@ var $author$project$Onigokko$addToMaze = F2(
 		return _Utils_update(
 			model,
 			{currentPos: newCurrentPos, lerwStart: newStart, maze: newMaze, outOfTree: newOutOfTree});
+	});
+var $elm$core$Basics$pow = _Basics_pow;
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Onigokko$dist3d = F2(
+	function (p, q) {
+		return $elm$core$Basics$sqrt(
+			(A2($elm$core$Basics$pow, p.x - q.x, 2) + A2($elm$core$Basics$pow, p.y - q.y, 2)) + A2($elm$core$Basics$pow, p.z - q.z, 2));
+	});
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
 	});
 var $author$project$Onigokko$East = {$: 'East'};
 var $author$project$Onigokko$North = {$: 'North'};
@@ -8258,6 +8439,40 @@ var $author$project$Onigokko$dual = function (primal) {
 			initialEdges,
 			primal));
 };
+var $elm$core$Basics$acos = _Basics_acos;
+var $author$project$Onigokko$innerProd = F2(
+	function (v, w) {
+		return ((v.x * w.x) + (v.y * w.y)) + (v.z * w.z);
+	});
+var $author$project$Onigokko$norm = function (vec) {
+	return $elm$core$Basics$sqrt(
+		(A2($elm$core$Basics$pow, vec.x, 2) + A2($elm$core$Basics$pow, vec.y, 2)) + A2($elm$core$Basics$pow, vec.z, 2));
+};
+var $author$project$Onigokko$fingerAngle = function (finger) {
+	var third = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 2, finger)));
+	var second = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 1, finger)));
+	var fourth = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 3, finger)));
+	var first = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(finger));
+	var top = {x: first.x - second.x, y: first.y - second.y, z: first.z - second.z};
+	var bot = {x: third.x - fourth.x, y: third.y - fourth.y, z: third.z - fourth.z};
+	return $elm$core$Basics$acos(
+		A2($author$project$Onigokko$innerProd, top, bot) / ($author$project$Onigokko$norm(top) * $author$project$Onigokko$norm(bot)));
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Onigokko$join = _Platform_outgoingPort('join', $elm$json$Json$Encode$string);
 var $elm$core$Debug$log = _Debug_log;
@@ -8314,6 +8529,30 @@ var $author$project$Onigokko$loggedIn = _Platform_outgoingPort(
 					$elm$json$Json$Encode$float($.y))
 				]));
 	});
+var $elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $elm$core$List$minimum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$min, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
 var $elm$core$Basics$cos = _Basics_cos;
 var $elm$core$Basics$sin = _Basics_sin;
 var $author$project$Onigokko$moveBackward = function (p) {
@@ -8357,27 +8596,6 @@ var $author$project$Onigokko$moved = _Platform_outgoingPort(
 					'y',
 					$elm$json$Json$Encode$float($.y))
 				]));
-	});
-var $elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
 	});
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
@@ -8459,6 +8677,132 @@ var $author$project$Onigokko$nextDir = F2(
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
 var $author$project$Onigokko$turnLeft = function (p) {
 	return _Utils_update(
 		p,
@@ -8739,15 +9083,122 @@ var $author$project$Onigokko$update = F2(
 						$author$project$Onigokko$NextGen,
 						A2($author$project$Onigokko$nextDir, newMaze.currentPos, $author$project$Onigokko$mazeSize)) : $author$project$Onigokko$wallsCompleted(
 						{host: model.me, walls: model.mazeData.dual}));
+			case 'Hands':
+				var handsData = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{hands: handsData}),
+					$elm$core$Platform$Cmd$none);
 			default:
-				var points = msg.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var t = msg.a;
+				if (model.elapsed < 1) {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{elapsed: model.elapsed + 1, oyaMoved: false}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var getPosition = function (idx) {
+						return A2(
+							$elm$core$Maybe$withDefault,
+							{x: 0, y: 0, z: 0},
+							$elm$core$List$head(
+								A2($elm$core$List$drop, idx, model.hands)));
+					};
+					var leftMove = _Utils_cmp(
+						A2(
+							$author$project$Onigokko$dist3d,
+							getPosition(4),
+							getPosition(8)),
+						A2(
+							$author$project$Onigokko$dist3d,
+							getPosition(7),
+							getPosition(8))) < 0;
+					var frontMove = _Utils_cmp(
+						A2(
+							$author$project$Onigokko$dist3d,
+							getPosition(21 + 4),
+							getPosition(21 + 8)),
+						A2(
+							$author$project$Onigokko$dist3d,
+							getPosition(21 + 7),
+							getPosition(21 + 8))) < 0;
+					var finger = function (idx) {
+						return A2(
+							$elm$core$List$take,
+							4,
+							(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), model.hands) : A2($elm$core$List$drop, 2 + (idx * 4), model.hands));
+					};
+					var hitoAngles = A2(
+						$elm$core$List$map,
+						$author$project$Onigokko$fingerAngle,
+						A2(
+							$elm$core$List$map,
+							function (fidx) {
+								return finger(fidx);
+							},
+							_List_fromArray(
+								[1, 6])));
+					var maxHitoAngle = A2(
+						$elm$core$Maybe$withDefault,
+						0,
+						$elm$core$List$maximum(hitoAngles));
+					var oyaAngles = A2(
+						$elm$core$List$map,
+						$author$project$Onigokko$fingerAngle,
+						A2(
+							$elm$core$List$map,
+							function (fidx) {
+								return finger(fidx);
+							},
+							_List_fromArray(
+								[0, 5])));
+					var maxOyaAngle = A2(
+						$elm$core$Debug$log,
+						'oya angle',
+						A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							$elm$core$List$maximum(oyaAngles)));
+					var angles = A2(
+						$elm$core$Debug$log,
+						'locate',
+						A2(
+							$elm$core$List$map,
+							$author$project$Onigokko$fingerAngle,
+							A2(
+								$elm$core$List$map,
+								function (fidx) {
+									return finger(fidx);
+								},
+								_List_fromArray(
+									[2, 3, 4, 7, 8, 9]))));
+					var minAngle = A2(
+						$elm$core$Maybe$withDefault,
+						0,
+						$elm$core$List$minimum(angles));
+					var onHome = _Utils_cmp(minAngle, $elm$core$Basics$pi / 2) > 0;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								elapsed: 0,
+								onHomePosition: onHome,
+								oyaMoved: (maxOyaAngle > 1.7) && (_Utils_cmp(minAngle, $elm$core$Basics$pi / 2) > 0),
+								prevHands: model.hands
+							}),
+						(onHome && leftMove) ? A2(
+							$elm$core$Task$perform,
+							$author$project$Onigokko$KeyDown,
+							$elm$core$Task$succeed(39)) : ((onHome && frontMove) ? A2(
+							$elm$core$Task$perform,
+							$author$project$Onigokko$KeyDown,
+							$elm$core$Task$succeed(37)) : $elm$core$Platform$Cmd$none));
+				}
 		}
 	});
 var $author$project$Onigokko$Join = {$: 'Join'};
-var $author$project$Onigokko$KeyDown = function (a) {
-	return {$: 'KeyDown', a: a};
-};
 var $author$project$Onigokko$NameChanged = function (a) {
 	return {$: 'NameChanged', a: a};
 };
@@ -8768,9 +9219,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 var $elm$html$Html$Attributes$align = $elm$html$Html$Attributes$stringProperty('align');
 var $ianmackenzie$elm_geometry$Geometry$Types$Cylinder3d = function (a) {
 	return {$: 'Cylinder3d', a: a};
-};
-var $ianmackenzie$elm_units$Quantity$Quantity = function (a) {
-	return {$: 'Quantity', a: a};
 };
 var $ianmackenzie$elm_units$Quantity$abs = function (_v0) {
 	var value = _v0.a;
@@ -9030,10 +9478,6 @@ var $elm_explorations$linear_algebra$Math$Vector3$getZ = _MJS_v3getZ;
 var $ianmackenzie$elm_geometry$Geometry$Types$BoundingBox3d = function (a) {
 	return {$: 'BoundingBox3d', a: a};
 };
-var $elm$core$Basics$min = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) < 0) ? x : y;
-	});
 var $ianmackenzie$elm_geometry$BoundingBox3d$fromExtrema = function (given) {
 	var _v0 = given.maxZ;
 	var z2 = _v0.a;
@@ -9352,7 +9796,6 @@ var $ianmackenzie$elm_geometry$Vector3d$from = F2(
 var $ianmackenzie$elm_units$Quantity$float = function (value) {
 	return $ianmackenzie$elm_units$Quantity$Quantity(value);
 };
-var $elm$core$Basics$sqrt = _Basics_sqrt;
 var $ianmackenzie$elm_geometry$Vector3d$zero = $ianmackenzie$elm_geometry$Geometry$Types$Vector3d(
 	{x: 0, y: 0, z: 0});
 var $ianmackenzie$elm_geometry$Vector3d$scaleTo = F2(
@@ -11375,11 +11818,6 @@ var $elm_explorations$webgl$WebGL$Internal$StencilTest = function (a) {
 		};
 	};
 };
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
 var $elm_explorations$webgl$WebGL$Settings$StencilTest$testSeparate = F3(
 	function (_v0, options1, options2) {
 		var ref = _v0.ref;
@@ -11688,7 +12126,6 @@ var $elm$core$Basics$clamp = F3(
 var $ianmackenzie$elm_3d_scene$Scene3d$Types$LinearRgb = function (a) {
 	return {$: 'LinearRgb', a: a};
 };
-var $elm$core$Basics$pow = _Basics_pow;
 var $ianmackenzie$elm_3d_scene$Scene3d$ColorConversions$inverseGamma = function (u) {
 	return A3(
 		$elm$core$Basics$clamp,
