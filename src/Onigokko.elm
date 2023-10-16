@@ -35,6 +35,8 @@ import Physics.Coordinates exposing (BodyCoordinates, WorldCoordinates)
 import Physics.World as World exposing (World)
 import Duration exposing (Duration)
 import Task
+import HandsSigns exposing (..)
+import Types exposing (..)
 
 main = Browser.element {init = init
                         ,update = update
@@ -55,76 +57,7 @@ port othersMove : (Player -> msg) -> Sub msg
 port wallInfo: (List {x:Int, y:Int, dir:Int} -> msg) -> Sub msg
 port handsReceiver : (List {x:Float, y:Float, z:Float} -> msg) -> Sub msg
        
-type WorldCoordinates = WorldCoordinates
-
-type alias Player = {id: Maybe String
-                    ,name: String
-                    ,x: Float
-                    ,y: Float
-                    ,theta: Float
-                    ,oni: Bool
-                    }
     
-type alias Model = {me: Player
-                   ,others: List Player
-                   ,room: String
-                   ,name: String
-                   ,host: Bool
-                   ,mazeData: MazeModel
-                       --,vertices : List (Point3d.Point3d Length.Meters WorldCoordinates)
-                       --,prev : List (Point3d.Point3d Length.Meters WorldCoordinates)
-                       ,state : State
-                       ,angle : Float
-                       ,start : Maybe {x:Float, y:Float}
-                       ,hands : List {x:Float, y:Float, z:Float}
-                       ,prevHands : List {x:Float, y:Float, z:Float}
-                       ,onHomePosition : Bool
-                       ,elapsed: Int
-                       ,oyaMoved: Bool
-                   }
-    
-type Msg = KeyPressed Direction
-         | OthersLoggedIn Player
-         | OthersMoved Player
-         | IdDefined {id:String, num:Int}
-         | RoomChanged String
-         | NameChanged String
-         | Join
-         | RandomPlayerGenerated Player
-         | KeyDown Int
-         | Hands (List {x:Float, y:Float, z:Float})
-         | NextGen MazeDirection
-         | WallBuilt (List {x:Int, y:Int, dir:Int})
-         | SendWall (List {x:Int, y:Int, dir:Int}) Time.Posix
-         | LocateHands Duration
---         | Elapsed Duration
-           
-type Direction = Left
-               | Right
-               | Other
-               | Forward
-               | Backward
-
-type alias Maze = Dict (Int, Int) (Int, Int)
-       
-type alias MazeModel = {maze: Maze
-                       ,outOfTree: (List (Int, Int))
-                       ,currentPos: (Int, Int)
-                       ,lerwStart: (Int, Int)
-                       --,dual: Dict (Int, Int) (List MazeDirection)
-                       ,dual: List {x:Int, y:Int, dir:Int}
-
-                       }
-
-type MazeDirection = North
-                   | South
-                   | East
-                   | West
-
-type State = Waiting
-           | MovingFront
-           | MovingLeft
-           | MovingTop
 
 mazeSize = 5
 init: () -> (Model, Cmd Msg)
@@ -149,7 +82,6 @@ init _ =
      ,prevHands = []
      ,onHomePosition = False
      ,elapsed = 0
-     ,oyaMoved = False
      }
     ,Random.generate RandomPlayerGenerated randomPlayer)
 
@@ -236,36 +168,6 @@ update msg model =
                             ({model| me = newMe}
                              , moved newMe)
                     _ -> (model, Cmd.none)
-        KeyPressed dir ->
-            let
-                dummy = Debug.log "" dir
-            in
-                case dir of
-                    Left ->
-                        let
-                            newMe = turnLeft model.me
-                        in
-                            ({model| me = newMe}
-                             , moved newMe)
-                    Right ->
-                        let
-                            newMe = turnRight model.me
-                        in
-                            ({model| me = newMe}
-                             , moved newMe)
-                    Forward ->
-                        let
-                            newMe = moveForward model.me
-                        in
-                            ({model| me = newMe}
-                            , moved newMe)
-                    Backward ->
-                        let
-                            newMe = moveBackward model.me
-                        in
-                            ({model| me = newMe}
-                             , moved newMe)
-                    _ -> (model, Cmd.none)
         OthersMoved other ->
             let
                 players = other::(List.filter (\player -> player.id /= other.id) model.others)
@@ -308,79 +210,24 @@ update msg model =
                      wallsCompleted {host=model.me, walls=model.mazeData.dual}
                 )
         Hands handsData ->
-            --let
-                --dummy = Debug.log "" points
-            --in
-                ({model | hands = handsData}, Cmd.none)
+            ({model | hands = handsData}, Cmd.none)
         LocateHands t ->
             if model.elapsed < 1 then
-                ({model | elapsed = model.elapsed+1, oyaMoved = False}, Cmd.none)
+                ({model | elapsed = model.elapsed+1}, Cmd.none)
             else
-                let
-                    getPosition idx = Maybe.withDefault {x=0,y=0,z=0}<|
-                                  List.head <| List.drop idx model.hands
-                    finger idx = List.take 4 <| (if idx <5 then
-                                                     List.drop (1+idx*4) model.hands
-                                                 else
-                                                     List.drop (2+idx*4) model.hands
-                                                )
-                    angles = Debug.log "locate"<| List.map fingerAngle <| List.map (\fidx -> finger fidx )[2,3,4,7,8,9]
-                    minAngle =  Maybe.withDefault 0 <| List.minimum angles
-                    oyaAngles = List.map fingerAngle <| List.map (\fidx -> finger fidx )[0,5]
-                    maxOyaAngle = Debug.log "oya angle" <|Maybe.withDefault 0 <| List.maximum oyaAngles
-                    hitoAngles = List.map fingerAngle <| List.map (\fidx -> finger fidx )[1,6]
-                    maxHitoAngle = Maybe.withDefault 0 <| List.maximum hitoAngles
-                    onHome = minAngle > pi/2
-                    leftMove = dist3d (getPosition 4) (getPosition 8) < dist3d (getPosition 7) (getPosition 8)
-                    frontMove = dist3d (getPosition (21+4)) (getPosition (21+8)) < dist3d (getPosition (21+7)) (getPosition (21+8))
-                in
-                    ({model | prevHands = model.hands
-                     ,onHomePosition = onHome
-                     ,elapsed = 0
-                     ,oyaMoved = maxOyaAngle > 1.7 && minAngle > pi/2
-                     }
-                    ,if onHome && leftMove then
-                         Task.perform KeyDown <| Task.succeed 39
-                     else if onHome && frontMove then
+                ({model | prevHands = model.hands
+                 ,elapsed = 0
+                 }
+                ,case (handsDirection model.hands) of
+                     Just Left ->
                          Task.perform KeyDown <| Task.succeed 37
-                          else
-                              Cmd.none)
-
-
-norm : {x:Float, y:Float, z:Float} -> Float
-norm vec =
-    sqrt <| vec.x^2 + vec.y^2 + vec.z^2
-
-innerProd : {x:Float, y:Float, z:Float} -> {x:Float, y:Float, z:Float} -> Float
-innerProd v w =
-    v.x * w.x + v.y * w.y + v.z * w.z
-
-
-fingerAngle : List {x:Float, y:Float, z:Float} -> Float
-fingerAngle finger =
-    let
-        first = Maybe.withDefault {x=0,y=0,z=0} <|
-                List.head finger
-        second = Maybe.withDefault {x=0,y=0,z=0} <|
-                List.head <| List.drop 1 <| finger
-        third = Maybe.withDefault {x=0,y=0,z=0} <|
-                List.head <| List.drop 2 <| finger
-        fourth = Maybe.withDefault {x=0,y=0,z=0} <|
-                 List.head <| List.drop 3 <| finger
-        top = {x=first.x-second.x
-              ,y=first.y-second.y
-              ,z=first.z-second.z
-              }
-        bot = {x=third.x-fourth.x
-              ,y=third.y-fourth.y
-              ,z=third.z-fourth.z
-              }
-    in
-        acos <| (innerProd top bot)/((norm top)*(norm bot))
-
-dist3d : {x:Float, y:Float, z:Float} -> {x:Float, y:Float, z:Float} -> Float
-dist3d p q =
-    sqrt((p.x-q.x)^2 + (p.y-q.y)^2 + (p.z-q.z)^2)
+                     Just Right ->
+                         Task.perform KeyDown <| Task.succeed 39
+                     _ -> case (goForward model.hands) of
+                              Just Forward ->
+                                  Task.perform KeyDown <| Task.succeed 38
+                              _ -> Cmd.none
+                )
                     
 --dual: Maze -> Dict (Int, Int) (List MazeDirection)
 dual: Maze -> List {x:Int, y:Int, dir:Int}
@@ -741,9 +588,7 @@ view model =
                      {x=Tuple.first event.pointer.offsetPos
                      ,y=Tuple.second event.pointer.offsetPos}
              in
-                 [div[onKeyDown KeyDown]
-                      [input[onKeyDown KeyDown, autofocus True][text "ここをタイプ"]]
-                 , Scene3d.sunny
+                 [Scene3d.sunny
                         { camera = camera
                         , clipDepth = Length.centimeters 0.5
                         , dimensions = ( Pixels.int 1200, Pixels.int 1000 )
@@ -839,26 +684,23 @@ playerView player =
         robot
         
         
-keyDecoder : D.Decoder Msg
-keyDecoder =
-  D.map toDirection (D.field "key" D.string)
-
-toDirection : String -> Msg
-toDirection string =
-    let
-        dummy = Debug.log "" "pressed"
-    in
-        case string of
-            "l" ->
-                KeyPressed Left
-            "r" ->
-                KeyPressed Right
-            "f" ->
-                KeyPressed Forward
-            "b" ->
-                KeyPressed Backward
-            _ ->
-                KeyPressed Other
+--keyDecoder : D.Decoder Msg
+--keyDecoder =
+--  D.map toDirection (D.field "key" D.string)
+--
+--toDirection : String -> Msg
+--toDirection string =
+--        case string of
+--            "l" ->
+--                KeyPressed Left
+--            "r" ->
+--                KeyPressed Right
+--            "f" ->
+--                KeyPressed Forward
+--            "b" ->
+--                KeyPressed Backward
+--            _ ->
+--                KeyPressed Other
           
 subscriptions: Model -> Sub Msg
 subscriptions model =

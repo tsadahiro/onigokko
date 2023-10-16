@@ -1,0 +1,19 @@
+port module Hands exposing (..)
+
+import Browser
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Duration exposing (Duration)
+
+main = Browser.element {init = init
+                       ,update = update
+                       ,subscripsions = subscripsions
+                       ,view = view
+                       }
+
+type alias Model = {}
+type Msg = LocateHands Duration
+       
+init : () -> (Model, Cmd Msg)
+       

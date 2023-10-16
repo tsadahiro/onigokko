@@ -7097,10 +7097,10 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Onigokko$RandomPlayerGenerated = function (a) {
+var $author$project$Types$RandomPlayerGenerated = function (a) {
 	return {$: 'RandomPlayerGenerated', a: a};
 };
-var $author$project$Onigokko$Waiting = {$: 'Waiting'};
+var $author$project$Types$Waiting = {$: 'Waiting'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$random$Random$Generate = function (a) {
@@ -7342,34 +7342,33 @@ var $author$project$Onigokko$init = function (_v0) {
 			name: '',
 			onHomePosition: false,
 			others: _List_Nil,
-			oyaMoved: false,
 			prevHands: _List_Nil,
 			room: '',
 			start: $elm$core$Maybe$Nothing,
-			state: $author$project$Onigokko$Waiting
+			state: $author$project$Types$Waiting
 		},
-		A2($elm$random$Random$generate, $author$project$Onigokko$RandomPlayerGenerated, $author$project$Onigokko$randomPlayer));
+		A2($elm$random$Random$generate, $author$project$Types$RandomPlayerGenerated, $author$project$Onigokko$randomPlayer));
 };
-var $author$project$Onigokko$Hands = function (a) {
+var $author$project$Types$Hands = function (a) {
 	return {$: 'Hands', a: a};
 };
-var $author$project$Onigokko$IdDefined = function (a) {
+var $author$project$Types$IdDefined = function (a) {
 	return {$: 'IdDefined', a: a};
 };
-var $author$project$Onigokko$LocateHands = function (a) {
+var $author$project$Types$LocateHands = function (a) {
 	return {$: 'LocateHands', a: a};
 };
-var $author$project$Onigokko$OthersLoggedIn = function (a) {
+var $author$project$Types$OthersLoggedIn = function (a) {
 	return {$: 'OthersLoggedIn', a: a};
 };
-var $author$project$Onigokko$OthersMoved = function (a) {
+var $author$project$Types$OthersMoved = function (a) {
 	return {$: 'OthersMoved', a: a};
 };
-var $author$project$Onigokko$SendWall = F2(
+var $author$project$Types$SendWall = F2(
 	function (a, b) {
 		return {$: 'SendWall', a: a, b: b};
 	});
-var $author$project$Onigokko$WallBuilt = function (a) {
+var $author$project$Types$WallBuilt = function (a) {
 	return {$: 'WallBuilt', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -8057,23 +8056,23 @@ var $author$project$Onigokko$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
-				$author$project$Onigokko$othersMove($author$project$Onigokko$OthersMoved),
-				$author$project$Onigokko$othersLogin($author$project$Onigokko$OthersLoggedIn),
-				$author$project$Onigokko$skywayId($author$project$Onigokko$IdDefined),
-				$author$project$Onigokko$handsReceiver($author$project$Onigokko$Hands),
-				$author$project$Onigokko$wallInfo($author$project$Onigokko$WallBuilt),
+				$author$project$Onigokko$othersMove($author$project$Types$OthersMoved),
+				$author$project$Onigokko$othersLogin($author$project$Types$OthersLoggedIn),
+				$author$project$Onigokko$skywayId($author$project$Types$IdDefined),
+				$author$project$Onigokko$handsReceiver($author$project$Types$Hands),
+				$author$project$Onigokko$wallInfo($author$project$Types$WallBuilt),
 				A2(
 				$elm$time$Time$every,
 				5000,
-				$author$project$Onigokko$SendWall(model.mazeData.dual)),
+				$author$project$Types$SendWall(model.mazeData.dual)),
 				$elm$browser$Browser$Events$onAnimationFrameDelta(
-				A2($elm$core$Basics$composeR, $ianmackenzie$elm_units$Duration$milliseconds, $author$project$Onigokko$LocateHands))
+				A2($elm$core$Basics$composeR, $ianmackenzie$elm_units$Duration$milliseconds, $author$project$Types$LocateHands))
 			]));
 };
-var $author$project$Onigokko$KeyDown = function (a) {
+var $author$project$Types$KeyDown = function (a) {
 	return {$: 'KeyDown', a: a};
 };
-var $author$project$Onigokko$NextGen = function (a) {
+var $author$project$Types$NextGen = function (a) {
 	return {$: 'NextGen', a: a};
 };
 var $elm$core$List$head = function (list) {
@@ -8184,38 +8183,10 @@ var $author$project$Onigokko$addToMaze = F2(
 			model,
 			{currentPos: newCurrentPos, lerwStart: newStart, maze: newMaze, outOfTree: newOutOfTree});
 	});
-var $elm$core$Basics$pow = _Basics_pow;
-var $elm$core$Basics$sqrt = _Basics_sqrt;
-var $author$project$Onigokko$dist3d = F2(
-	function (p, q) {
-		return $elm$core$Basics$sqrt(
-			(A2($elm$core$Basics$pow, p.x - q.x, 2) + A2($elm$core$Basics$pow, p.y - q.y, 2)) + A2($elm$core$Basics$pow, p.z - q.z, 2));
-	});
-var $elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var $author$project$Onigokko$East = {$: 'East'};
-var $author$project$Onigokko$North = {$: 'North'};
-var $author$project$Onigokko$South = {$: 'South'};
-var $author$project$Onigokko$West = {$: 'West'};
+var $author$project$Types$East = {$: 'East'};
+var $author$project$Types$North = {$: 'North'};
+var $author$project$Types$South = {$: 'South'};
+var $author$project$Types$West = {$: 'West'};
 var $author$project$Onigokko$dual = function (primal) {
 	var remove = F3(
 		function (_v4, _v5, dict) {
@@ -8225,7 +8196,7 @@ var $author$project$Onigokko$dual = function (primal) {
 			var toY = _v5.b;
 			var dy = toY - fromY;
 			var dx = toX - fromX;
-			var pdir = (dx > 0) ? $author$project$Onigokko$East : ((dx < 0) ? $author$project$Onigokko$West : ((dy > 0) ? $author$project$Onigokko$North : $author$project$Onigokko$South));
+			var pdir = (dx > 0) ? $author$project$Types$East : ((dx < 0) ? $author$project$Types$West : ((dy > 0) ? $author$project$Types$North : $author$project$Types$South));
 			switch (pdir.$) {
 				case 'West':
 					var leftBelow = A2(
@@ -8248,7 +8219,7 @@ var $author$project$Onigokko$dual = function (primal) {
 						A2(
 							$elm$core$List$filter,
 							function (dir) {
-								return !_Utils_eq(dir, $author$project$Onigokko$North);
+								return !_Utils_eq(dir, $author$project$Types$North);
 							},
 							leftBelow),
 						A3(
@@ -8257,7 +8228,7 @@ var $author$project$Onigokko$dual = function (primal) {
 							A2(
 								$elm$core$List$filter,
 								function (dir) {
-									return !_Utils_eq(dir, $author$project$Onigokko$South);
+									return !_Utils_eq(dir, $author$project$Types$South);
 								},
 								leftAbove),
 							dict));
@@ -8282,7 +8253,7 @@ var $author$project$Onigokko$dual = function (primal) {
 						A2(
 							$elm$core$List$filter,
 							function (dir) {
-								return !_Utils_eq(dir, $author$project$Onigokko$North);
+								return !_Utils_eq(dir, $author$project$Types$North);
 							},
 							rightBelow),
 						A3(
@@ -8291,7 +8262,7 @@ var $author$project$Onigokko$dual = function (primal) {
 							A2(
 								$elm$core$List$filter,
 								function (dir) {
-									return !_Utils_eq(dir, $author$project$Onigokko$South);
+									return !_Utils_eq(dir, $author$project$Types$South);
 								},
 								rightAbove),
 							dict));
@@ -8316,7 +8287,7 @@ var $author$project$Onigokko$dual = function (primal) {
 						A2(
 							$elm$core$List$filter,
 							function (dir) {
-								return !_Utils_eq(dir, $author$project$Onigokko$West);
+								return !_Utils_eq(dir, $author$project$Types$West);
 							},
 							rightAbove),
 						A3(
@@ -8325,7 +8296,7 @@ var $author$project$Onigokko$dual = function (primal) {
 							A2(
 								$elm$core$List$filter,
 								function (dir) {
-									return !_Utils_eq(dir, $author$project$Onigokko$East);
+									return !_Utils_eq(dir, $author$project$Types$East);
 								},
 								leftAbove),
 							dict));
@@ -8350,7 +8321,7 @@ var $author$project$Onigokko$dual = function (primal) {
 						A2(
 							$elm$core$List$filter,
 							function (dir) {
-								return !_Utils_eq(dir, $author$project$Onigokko$West);
+								return !_Utils_eq(dir, $author$project$Types$West);
 							},
 							rightBelow),
 						A3(
@@ -8359,7 +8330,7 @@ var $author$project$Onigokko$dual = function (primal) {
 							A2(
 								$elm$core$List$filter,
 								function (dir) {
-									return !_Utils_eq(dir, $author$project$Onigokko$East);
+									return !_Utils_eq(dir, $author$project$Types$East);
 								},
 								leftBelow),
 							dict));
@@ -8371,9 +8342,9 @@ var $author$project$Onigokko$dual = function (primal) {
 		return _Utils_eq(
 			_Utils_Tuple2(x, y),
 			_Utils_Tuple2(-$author$project$Onigokko$mazeSize, -$author$project$Onigokko$mazeSize)) ? _List_Nil : (_Utils_eq(x, -$author$project$Onigokko$mazeSize) ? _List_fromArray(
-			[$author$project$Onigokko$South]) : (_Utils_eq(y, -$author$project$Onigokko$mazeSize) ? _List_fromArray(
-			[$author$project$Onigokko$West]) : _List_fromArray(
-			[$author$project$Onigokko$South, $author$project$Onigokko$West])));
+			[$author$project$Types$South]) : (_Utils_eq(y, -$author$project$Onigokko$mazeSize) ? _List_fromArray(
+			[$author$project$Types$West]) : _List_fromArray(
+			[$author$project$Types$South, $author$project$Types$West])));
 	};
 	var dualV = $elm$core$List$concat(
 		A2(
@@ -8439,16 +8410,40 @@ var $author$project$Onigokko$dual = function (primal) {
 			initialEdges,
 			primal));
 };
+var $author$project$Types$Forward = {$: 'Forward'};
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
 var $elm$core$Basics$acos = _Basics_acos;
-var $author$project$Onigokko$innerProd = F2(
+var $author$project$HandsSigns$innerProd = F2(
 	function (v, w) {
 		return ((v.x * w.x) + (v.y * w.y)) + (v.z * w.z);
 	});
-var $author$project$Onigokko$norm = function (vec) {
+var $elm$core$Basics$pow = _Basics_pow;
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$HandsSigns$norm = function (vec) {
 	return $elm$core$Basics$sqrt(
 		(A2($elm$core$Basics$pow, vec.x, 2) + A2($elm$core$Basics$pow, vec.y, 2)) + A2($elm$core$Basics$pow, vec.z, 2));
 };
-var $author$project$Onigokko$fingerAngle = function (finger) {
+var $author$project$HandsSigns$fingerAngle = function (finger) {
 	var third = A2(
 		$elm$core$Maybe$withDefault,
 		{x: 0, y: 0, z: 0},
@@ -8471,73 +8466,7 @@ var $author$project$Onigokko$fingerAngle = function (finger) {
 	var top = {x: first.x - second.x, y: first.y - second.y, z: first.z - second.z};
 	var bot = {x: third.x - fourth.x, y: third.y - fourth.y, z: third.z - fourth.z};
 	return $elm$core$Basics$acos(
-		A2($author$project$Onigokko$innerProd, top, bot) / ($author$project$Onigokko$norm(top) * $author$project$Onigokko$norm(bot)));
-};
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Onigokko$join = _Platform_outgoingPort('join', $elm$json$Json$Encode$string);
-var $elm$core$Debug$log = _Debug_log;
-var $elm$json$Json$Encode$bool = _Json_wrap;
-var $elm$core$Maybe$destruct = F3(
-	function (_default, func, maybe) {
-		if (maybe.$ === 'Just') {
-			var a = maybe.a;
-			return func(a);
-		} else {
-			return _default;
-		}
-	});
-var $elm$json$Json$Encode$float = _Json_wrap;
-var $elm$json$Json$Encode$null = _Json_encodeNull;
-var $elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, obj) {
-					var k = _v0.a;
-					var v = _v0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
-};
-var $author$project$Onigokko$loggedIn = _Platform_outgoingPort(
-	'loggedIn',
-	function ($) {
-		return $elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'id',
-					function ($) {
-						return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
-					}($.id)),
-					_Utils_Tuple2(
-					'name',
-					$elm$json$Json$Encode$string($.name)),
-					_Utils_Tuple2(
-					'oni',
-					$elm$json$Json$Encode$bool($.oni)),
-					_Utils_Tuple2(
-					'theta',
-					$elm$json$Json$Encode$float($.theta)),
-					_Utils_Tuple2(
-					'x',
-					$elm$json$Json$Encode$float($.x)),
-					_Utils_Tuple2(
-					'y',
-					$elm$json$Json$Encode$float($.y))
-				]));
-	});
-var $elm$core$List$maximum = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(
-			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
+		A2($author$project$HandsSigns$innerProd, top, bot) / ($author$project$HandsSigns$norm(top) * $author$project$HandsSigns$norm(bot)));
 };
 var $elm$core$Basics$min = F2(
 	function (x, y) {
@@ -8553,130 +8482,17 @@ var $elm$core$List$minimum = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$Basics$cos = _Basics_cos;
-var $elm$core$Basics$sin = _Basics_sin;
-var $author$project$Onigokko$moveBackward = function (p) {
-	var newY = p.y - (0.5 * $elm$core$Basics$sin(p.theta));
-	var newX = p.x - (0.5 * $elm$core$Basics$cos(p.theta));
-	return _Utils_update(
-		p,
-		{x: newX, y: newY});
-};
-var $author$project$Onigokko$moveForward = function (p) {
-	var newY = p.y + (0.15 * $elm$core$Basics$sin(p.theta));
-	var newX = p.x + (0.15 * $elm$core$Basics$cos(p.theta));
-	return _Utils_update(
-		p,
-		{x: newX, y: newY});
-};
-var $author$project$Onigokko$moved = _Platform_outgoingPort(
-	'moved',
-	function ($) {
-		return $elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'id',
-					function ($) {
-						return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
-					}($.id)),
-					_Utils_Tuple2(
-					'name',
-					$elm$json$Json$Encode$string($.name)),
-					_Utils_Tuple2(
-					'oni',
-					$elm$json$Json$Encode$bool($.oni)),
-					_Utils_Tuple2(
-					'theta',
-					$elm$json$Json$Encode$float($.theta)),
-					_Utils_Tuple2(
-					'x',
-					$elm$json$Json$Encode$float($.x)),
-					_Utils_Tuple2(
-					'y',
-					$elm$json$Json$Encode$float($.y))
-				]));
-	});
-var $elm$random$Random$addOne = function (value) {
-	return _Utils_Tuple2(1, value);
-};
-var $elm$random$Random$getByWeight = F3(
-	function (_v0, others, countdown) {
-		getByWeight:
-		while (true) {
-			var weight = _v0.a;
-			var value = _v0.b;
-			if (!others.b) {
-				return value;
-			} else {
-				var second = others.a;
-				var otherOthers = others.b;
-				if (_Utils_cmp(
-					countdown,
-					$elm$core$Basics$abs(weight)) < 1) {
-					return value;
-				} else {
-					var $temp$_v0 = second,
-						$temp$others = otherOthers,
-						$temp$countdown = countdown - $elm$core$Basics$abs(weight);
-					_v0 = $temp$_v0;
-					others = $temp$others;
-					countdown = $temp$countdown;
-					continue getByWeight;
-				}
-			}
-		}
-	});
-var $elm$core$List$sum = function (numbers) {
-	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
-};
-var $elm$random$Random$weighted = F2(
-	function (first, others) {
-		var normalize = function (_v0) {
-			var weight = _v0.a;
-			return $elm$core$Basics$abs(weight);
-		};
-		var total = normalize(first) + $elm$core$List$sum(
-			A2($elm$core$List$map, normalize, others));
-		return A2(
-			$elm$random$Random$map,
-			A2($elm$random$Random$getByWeight, first, others),
-			A2($elm$random$Random$float, 0, total));
-	});
-var $elm$random$Random$uniform = F2(
-	function (value, valueList) {
-		return A2(
-			$elm$random$Random$weighted,
-			$elm$random$Random$addOne(value),
-			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
-	});
-var $author$project$Onigokko$nextDir = F2(
-	function (_v0, size) {
-		var x = _v0.a;
-		var y = _v0.b;
-		var west = (_Utils_cmp(x, -size) > 0) ? _List_fromArray(
-			[$author$project$Onigokko$West]) : _List_Nil;
-		var south = (_Utils_cmp(y, -size) > 0) ? _List_fromArray(
-			[$author$project$Onigokko$South]) : _List_Nil;
-		var pos = _Utils_Tuple2(x, y);
-		var north = (_Utils_cmp(y, size) < 0) ? _List_fromArray(
-			[$author$project$Onigokko$North]) : _List_Nil;
-		var east = (_Utils_cmp(x, size) < 0) ? _List_fromArray(
-			[$author$project$Onigokko$East]) : _List_Nil;
-		var dirs = $elm$core$List$concat(
-			_List_fromArray(
-				[east, west, south, north]));
-		return A2(
-			$elm$random$Random$uniform,
-			A2(
-				$elm$core$Maybe$withDefault,
-				$author$project$Onigokko$West,
-				$elm$core$List$head(dirs)),
-			A2($elm$core$List$drop, 1, dirs));
-	});
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
 var $elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
 		takeReverse:
@@ -8803,6 +8619,339 @@ var $elm$core$List$take = F2(
 	function (n, list) {
 		return A3($elm$core$List$takeFast, 0, n, list);
 	});
+var $author$project$HandsSigns$pinto = function (handsData) {
+	var getPosition = function (idx) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			{x: 0, y: 0, z: 0},
+			$elm$core$List$head(
+				A2($elm$core$List$drop, idx, handsData)));
+	};
+	var finger = function (idx) {
+		return A2(
+			$elm$core$List$take,
+			4,
+			(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), handsData) : A2($elm$core$List$drop, 2 + (idx * 4), handsData));
+	};
+	var angles = A2(
+		$elm$core$List$map,
+		$author$project$HandsSigns$fingerAngle,
+		A2(
+			$elm$core$List$map,
+			function (fidx) {
+				return finger(fidx);
+			},
+			_List_fromArray(
+				[1, 2, 3, 4, 6, 7, 8, 9])));
+	var maxAngle = A2(
+		$elm$core$Maybe$withDefault,
+		$elm$core$Basics$pi / 2,
+		$elm$core$List$maximum(angles));
+	return ($elm$core$List$length(handsData) === 42) && (_Utils_cmp(maxAngle, $elm$core$Basics$pi / 7) < 0);
+};
+var $author$project$HandsSigns$goForward = function (handsData) {
+	var getPosition = function (idx) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			{x: 0, y: 0, z: 0},
+			$elm$core$List$head(
+				A2($elm$core$List$drop, idx, handsData)));
+	};
+	var finger = function (idx) {
+		return A2(
+			$elm$core$List$take,
+			4,
+			(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), handsData) : A2($elm$core$List$drop, 2 + (idx * 4), handsData));
+	};
+	var oyaAngles = A2(
+		$elm$core$List$map,
+		$author$project$HandsSigns$fingerAngle,
+		A2(
+			$elm$core$List$map,
+			function (fidx) {
+				return finger(fidx);
+			},
+			_List_fromArray(
+				[0, 5])));
+	var minOyaAngle = A2(
+		$elm$core$Maybe$withDefault,
+		0,
+		$elm$core$List$minimum(oyaAngles));
+	return (!$author$project$HandsSigns$pinto(handsData)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(minOyaAngle, (3 / 5) * $elm$core$Basics$pi) > 0) ? $elm$core$Maybe$Just($author$project$Types$Forward) : $elm$core$Maybe$Nothing);
+};
+var $author$project$Types$Left = {$: 'Left'};
+var $author$project$Types$Right = {$: 'Right'};
+var $author$project$HandsSigns$angle = F2(
+	function (v, w) {
+		return $elm$core$Basics$acos(
+			A2($author$project$HandsSigns$innerProd, v, w) / ($author$project$HandsSigns$norm(v) * $author$project$HandsSigns$norm(w)));
+	});
+var $author$project$HandsSigns$fingerVector = function (finger) {
+	var third = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 2, finger)));
+	var second = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 1, finger)));
+	var fourth = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 3, finger)));
+	var first = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(finger));
+	var vec = {x: 100 * (first.x - fourth.x), y: 100 * (first.y - fourth.y), z: 100 * (first.z - fourth.z)};
+	return vec;
+};
+var $elm$core$List$sum = function (numbers) {
+	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
+};
+var $author$project$HandsSigns$handsDirection = function (handsData) {
+	var getPosition = function (idx) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			{x: 0, y: 0, z: 0},
+			$elm$core$List$head(
+				A2($elm$core$List$drop, idx, handsData)));
+	};
+	var finger = function (idx) {
+		return A2(
+			$elm$core$List$take,
+			4,
+			(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), handsData) : A2($elm$core$List$drop, 2 + (idx * 4), handsData));
+	};
+	var fVectors2 = A2(
+		$elm$core$List$map,
+		$author$project$HandsSigns$fingerVector,
+		A2(
+			$elm$core$List$map,
+			function (fidx) {
+				return finger(fidx);
+			},
+			_List_fromArray(
+				[6, 7, 8, 9])));
+	var meanAngle2 = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (fv) {
+				return A2(
+					$author$project$HandsSigns$angle,
+					{x: 1, y: 0, z: 0},
+					fv);
+			},
+			fVectors2)) / 4;
+	var fVectors1 = A2(
+		$elm$core$List$map,
+		$author$project$HandsSigns$fingerVector,
+		A2(
+			$elm$core$List$map,
+			function (fidx) {
+				return finger(fidx);
+			},
+			_List_fromArray(
+				[1, 2, 3, 4])));
+	var meanAngle1 = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (fv) {
+				return A2(
+					$author$project$HandsSigns$angle,
+					{x: 1, y: 0, z: 0},
+					fv);
+			},
+			fVectors1)) / 4;
+	return (!$author$project$HandsSigns$pinto(handsData)) ? $elm$core$Maybe$Nothing : (((_Utils_cmp(
+		A2($elm$core$Basics$min, meanAngle1, meanAngle2),
+		$elm$core$Basics$pi / 4) < 0) && (_Utils_cmp(
+		$elm$core$Basics$abs(meanAngle1 - meanAngle2),
+		$elm$core$Basics$pi / 4) > 0)) ? $elm$core$Maybe$Just($author$project$Types$Right) : (((_Utils_cmp(
+		A2($elm$core$Basics$max, meanAngle1, meanAngle2),
+		(3 * $elm$core$Basics$pi) / 4) > 0) && (_Utils_cmp(
+		$elm$core$Basics$abs(meanAngle1 - meanAngle2),
+		$elm$core$Basics$pi / 4) > 0)) ? $elm$core$Maybe$Just($author$project$Types$Left) : $elm$core$Maybe$Nothing));
+};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Onigokko$join = _Platform_outgoingPort('join', $elm$json$Json$Encode$string);
+var $elm$core$Debug$log = _Debug_log;
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$core$Maybe$destruct = F3(
+	function (_default, func, maybe) {
+		if (maybe.$ === 'Just') {
+			var a = maybe.a;
+			return func(a);
+		} else {
+			return _default;
+		}
+	});
+var $elm$json$Json$Encode$float = _Json_wrap;
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $author$project$Onigokko$loggedIn = _Platform_outgoingPort(
+	'loggedIn',
+	function ($) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'id',
+					function ($) {
+						return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
+					}($.id)),
+					_Utils_Tuple2(
+					'name',
+					$elm$json$Json$Encode$string($.name)),
+					_Utils_Tuple2(
+					'oni',
+					$elm$json$Json$Encode$bool($.oni)),
+					_Utils_Tuple2(
+					'theta',
+					$elm$json$Json$Encode$float($.theta)),
+					_Utils_Tuple2(
+					'x',
+					$elm$json$Json$Encode$float($.x)),
+					_Utils_Tuple2(
+					'y',
+					$elm$json$Json$Encode$float($.y))
+				]));
+	});
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$sin = _Basics_sin;
+var $author$project$Onigokko$moveBackward = function (p) {
+	var newY = p.y - (0.5 * $elm$core$Basics$sin(p.theta));
+	var newX = p.x - (0.5 * $elm$core$Basics$cos(p.theta));
+	return _Utils_update(
+		p,
+		{x: newX, y: newY});
+};
+var $author$project$Onigokko$moveForward = function (p) {
+	var newY = p.y + (0.15 * $elm$core$Basics$sin(p.theta));
+	var newX = p.x + (0.15 * $elm$core$Basics$cos(p.theta));
+	return _Utils_update(
+		p,
+		{x: newX, y: newY});
+};
+var $author$project$Onigokko$moved = _Platform_outgoingPort(
+	'moved',
+	function ($) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'id',
+					function ($) {
+						return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
+					}($.id)),
+					_Utils_Tuple2(
+					'name',
+					$elm$json$Json$Encode$string($.name)),
+					_Utils_Tuple2(
+					'oni',
+					$elm$json$Json$Encode$bool($.oni)),
+					_Utils_Tuple2(
+					'theta',
+					$elm$json$Json$Encode$float($.theta)),
+					_Utils_Tuple2(
+					'x',
+					$elm$json$Json$Encode$float($.x)),
+					_Utils_Tuple2(
+					'y',
+					$elm$json$Json$Encode$float($.y))
+				]));
+	});
+var $elm$random$Random$addOne = function (value) {
+	return _Utils_Tuple2(1, value);
+};
+var $elm$random$Random$getByWeight = F3(
+	function (_v0, others, countdown) {
+		getByWeight:
+		while (true) {
+			var weight = _v0.a;
+			var value = _v0.b;
+			if (!others.b) {
+				return value;
+			} else {
+				var second = others.a;
+				var otherOthers = others.b;
+				if (_Utils_cmp(
+					countdown,
+					$elm$core$Basics$abs(weight)) < 1) {
+					return value;
+				} else {
+					var $temp$_v0 = second,
+						$temp$others = otherOthers,
+						$temp$countdown = countdown - $elm$core$Basics$abs(weight);
+					_v0 = $temp$_v0;
+					others = $temp$others;
+					countdown = $temp$countdown;
+					continue getByWeight;
+				}
+			}
+		}
+	});
+var $elm$random$Random$weighted = F2(
+	function (first, others) {
+		var normalize = function (_v0) {
+			var weight = _v0.a;
+			return $elm$core$Basics$abs(weight);
+		};
+		var total = normalize(first) + $elm$core$List$sum(
+			A2($elm$core$List$map, normalize, others));
+		return A2(
+			$elm$random$Random$map,
+			A2($elm$random$Random$getByWeight, first, others),
+			A2($elm$random$Random$float, 0, total));
+	});
+var $elm$random$Random$uniform = F2(
+	function (value, valueList) {
+		return A2(
+			$elm$random$Random$weighted,
+			$elm$random$Random$addOne(value),
+			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
+	});
+var $author$project$Onigokko$nextDir = F2(
+	function (_v0, size) {
+		var x = _v0.a;
+		var y = _v0.b;
+		var west = (_Utils_cmp(x, -size) > 0) ? _List_fromArray(
+			[$author$project$Types$West]) : _List_Nil;
+		var south = (_Utils_cmp(y, -size) > 0) ? _List_fromArray(
+			[$author$project$Types$South]) : _List_Nil;
+		var pos = _Utils_Tuple2(x, y);
+		var north = (_Utils_cmp(y, size) < 0) ? _List_fromArray(
+			[$author$project$Types$North]) : _List_Nil;
+		var east = (_Utils_cmp(x, size) < 0) ? _List_fromArray(
+			[$author$project$Types$East]) : _List_Nil;
+		var dirs = $elm$core$List$concat(
+			_List_fromArray(
+				[east, west, south, north]));
+		return A2(
+			$elm$random$Random$uniform,
+			A2(
+				$elm$core$Maybe$withDefault,
+				$author$project$Types$West,
+				$elm$core$List$head(dirs)),
+			A2($elm$core$List$drop, 1, dirs));
+	});
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Onigokko$turnLeft = function (p) {
 	return _Utils_update(
 		p,
@@ -8932,7 +9081,7 @@ var $author$project$Onigokko$update = F2(
 						}),
 					(info.num === 1) ? A2(
 						$elm$random$Random$generate,
-						$author$project$Onigokko$NextGen,
+						$author$project$Types$NextGen,
 						A2(
 							$author$project$Onigokko$nextDir,
 							_Utils_Tuple2(0, 0),
@@ -8963,41 +9112,6 @@ var $author$project$Onigokko$update = F2(
 								{me: newMe}),
 							$author$project$Onigokko$moved(newMe));
 					case 40:
-						var newMe = $author$project$Onigokko$moveBackward(model.me);
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{me: newMe}),
-							$author$project$Onigokko$moved(newMe));
-					default:
-						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'KeyPressed':
-				var dir = msg.a;
-				var dummy = A2($elm$core$Debug$log, '', dir);
-				switch (dir.$) {
-					case 'Left':
-						var newMe = $author$project$Onigokko$turnLeft(model.me);
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{me: newMe}),
-							$author$project$Onigokko$moved(newMe));
-					case 'Right':
-						var newMe = $author$project$Onigokko$turnRight(model.me);
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{me: newMe}),
-							$author$project$Onigokko$moved(newMe));
-					case 'Forward':
-						var newMe = $author$project$Onigokko$moveForward(model.me);
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{me: newMe}),
-							$author$project$Onigokko$moved(newMe));
-					case 'Backward':
 						var newMe = $author$project$Onigokko$moveBackward(model.me);
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -9080,7 +9194,7 @@ var $author$project$Onigokko$update = F2(
 						{mazeData: newMazeWithDual}),
 					(!completed) ? A2(
 						$elm$random$Random$generate,
-						$author$project$Onigokko$NextGen,
+						$author$project$Types$NextGen,
 						A2($author$project$Onigokko$nextDir, newMaze.currentPos, $author$project$Onigokko$mazeSize)) : $author$project$Onigokko$wallsCompleted(
 						{host: model.me, walls: model.mazeData.dual}));
 			case 'Hands':
@@ -9092,121 +9206,61 @@ var $author$project$Onigokko$update = F2(
 					$elm$core$Platform$Cmd$none);
 			default:
 				var t = msg.a;
-				if (model.elapsed < 1) {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{elapsed: model.elapsed + 1, oyaMoved: false}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var getPosition = function (idx) {
-						return A2(
-							$elm$core$Maybe$withDefault,
-							{x: 0, y: 0, z: 0},
-							$elm$core$List$head(
-								A2($elm$core$List$drop, idx, model.hands)));
-					};
-					var leftMove = _Utils_cmp(
-						A2(
-							$author$project$Onigokko$dist3d,
-							getPosition(4),
-							getPosition(8)),
-						A2(
-							$author$project$Onigokko$dist3d,
-							getPosition(7),
-							getPosition(8))) < 0;
-					var frontMove = _Utils_cmp(
-						A2(
-							$author$project$Onigokko$dist3d,
-							getPosition(21 + 4),
-							getPosition(21 + 8)),
-						A2(
-							$author$project$Onigokko$dist3d,
-							getPosition(21 + 7),
-							getPosition(21 + 8))) < 0;
-					var finger = function (idx) {
-						return A2(
-							$elm$core$List$take,
-							4,
-							(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), model.hands) : A2($elm$core$List$drop, 2 + (idx * 4), model.hands));
-					};
-					var hitoAngles = A2(
-						$elm$core$List$map,
-						$author$project$Onigokko$fingerAngle,
-						A2(
-							$elm$core$List$map,
-							function (fidx) {
-								return finger(fidx);
-							},
-							_List_fromArray(
-								[1, 6])));
-					var maxHitoAngle = A2(
-						$elm$core$Maybe$withDefault,
-						0,
-						$elm$core$List$maximum(hitoAngles));
-					var oyaAngles = A2(
-						$elm$core$List$map,
-						$author$project$Onigokko$fingerAngle,
-						A2(
-							$elm$core$List$map,
-							function (fidx) {
-								return finger(fidx);
-							},
-							_List_fromArray(
-								[0, 5])));
-					var maxOyaAngle = A2(
-						$elm$core$Debug$log,
-						'oya angle',
-						A2(
-							$elm$core$Maybe$withDefault,
-							0,
-							$elm$core$List$maximum(oyaAngles)));
-					var angles = A2(
-						$elm$core$Debug$log,
-						'locate',
-						A2(
-							$elm$core$List$map,
-							$author$project$Onigokko$fingerAngle,
-							A2(
-								$elm$core$List$map,
-								function (fidx) {
-									return finger(fidx);
-								},
-								_List_fromArray(
-									[2, 3, 4, 7, 8, 9]))));
-					var minAngle = A2(
-						$elm$core$Maybe$withDefault,
-						0,
-						$elm$core$List$minimum(angles));
-					var onHome = _Utils_cmp(minAngle, $elm$core$Basics$pi / 2) > 0;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								elapsed: 0,
-								onHomePosition: onHome,
-								oyaMoved: (maxOyaAngle > 1.7) && (_Utils_cmp(minAngle, $elm$core$Basics$pi / 2) > 0),
-								prevHands: model.hands
-							}),
-						(onHome && leftMove) ? A2(
-							$elm$core$Task$perform,
-							$author$project$Onigokko$KeyDown,
-							$elm$core$Task$succeed(39)) : ((onHome && frontMove) ? A2(
-							$elm$core$Task$perform,
-							$author$project$Onigokko$KeyDown,
-							$elm$core$Task$succeed(37)) : $elm$core$Platform$Cmd$none));
-				}
+				return (model.elapsed < 1) ? _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{elapsed: model.elapsed + 1}),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{elapsed: 0, prevHands: model.hands}),
+					function () {
+						var _v2 = $author$project$HandsSigns$handsDirection(model.hands);
+						_v2$2:
+						while (true) {
+							if (_v2.$ === 'Just') {
+								switch (_v2.a.$) {
+									case 'Left':
+										var _v3 = _v2.a;
+										return A2(
+											$elm$core$Task$perform,
+											$author$project$Types$KeyDown,
+											$elm$core$Task$succeed(37));
+									case 'Right':
+										var _v4 = _v2.a;
+										return A2(
+											$elm$core$Task$perform,
+											$author$project$Types$KeyDown,
+											$elm$core$Task$succeed(39));
+									default:
+										break _v2$2;
+								}
+							} else {
+								break _v2$2;
+							}
+						}
+						var _v5 = $author$project$HandsSigns$goForward(model.hands);
+						if ((_v5.$ === 'Just') && (_v5.a.$ === 'Forward')) {
+							var _v6 = _v5.a;
+							return A2(
+								$elm$core$Task$perform,
+								$author$project$Types$KeyDown,
+								$elm$core$Task$succeed(38));
+						} else {
+							return $elm$core$Platform$Cmd$none;
+						}
+					}());
 		}
 	});
-var $author$project$Onigokko$Join = {$: 'Join'};
-var $author$project$Onigokko$NameChanged = function (a) {
+var $author$project$Types$Join = {$: 'Join'};
+var $author$project$Types$NameChanged = function (a) {
 	return {$: 'NameChanged', a: a};
 };
-var $author$project$Onigokko$Player = F6(
+var $author$project$Types$Player = F6(
 	function (id, name, x, y, theta, oni) {
 		return {id: id, name: name, oni: oni, theta: theta, x: x, y: y};
 	});
-var $author$project$Onigokko$RoomChanged = function (a) {
+var $author$project$Types$RoomChanged = function (a) {
 	return {$: 'RoomChanged', a: a};
 };
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -9309,14 +9363,6 @@ var $ianmackenzie$elm_geometry$Sphere3d$atPoint = F2(
 	function (givenCenterPoint, givenRadius) {
 		return A2($ianmackenzie$elm_geometry$Sphere3d$withRadius, givenRadius, givenCenterPoint);
 	});
-var $elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$bool(bool));
-	});
-var $elm$html$Html$Attributes$autofocus = $elm$html$Html$Attributes$boolProperty('autofocus');
 var $avh4$elm_color$Color$RgbaSpace = F4(
 	function (a, b, c, d) {
 		return {$: 'RgbaSpace', a: a, b: b, c: c, d: d};
@@ -12221,13 +12267,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
-var $elm$html$Html$Events$keyCode = A2($elm$json$Json$Decode$field, 'keyCode', $elm$json$Json$Decode$int);
-var $author$project$Onigokko$onKeyDown = function (tagger) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'keydown',
-		A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$keyCode));
-};
 var $ianmackenzie$elm_3d_camera$Camera3d$Types$Camera3d = function (a) {
 	return {$: 'Camera3d', a: a};
 };
@@ -14840,11 +14879,11 @@ var $author$project$Onigokko$view = function (model) {
 							[
 								$elm$html$Html$Attributes$type_('text'),
 								$elm$html$Html$Attributes$placeholder('Room ID'),
-								$elm$html$Html$Events$onInput($author$project$Onigokko$RoomChanged),
+								$elm$html$Html$Events$onInput($author$project$Types$RoomChanged),
 								A2(
 								$elm$html$Html$Events$on,
 								'keydown',
-								$author$project$Onigokko$ifIsEnter($author$project$Onigokko$Join)),
+								$author$project$Onigokko$ifIsEnter($author$project$Types$Join)),
 								$elm$html$Html$Attributes$value(model.room)
 							]),
 						_List_Nil),
@@ -14854,7 +14893,7 @@ var $author$project$Onigokko$view = function (model) {
 							[
 								$elm$html$Html$Attributes$type_('text'),
 								$elm$html$Html$Attributes$placeholder('Nickname'),
-								$elm$html$Html$Events$onInput($author$project$Onigokko$NameChanged),
+								$elm$html$Html$Events$onInput($author$project$Types$NameChanged),
 								$elm$html$Html$Attributes$value(model.me.name)
 							]),
 						_List_Nil),
@@ -14862,7 +14901,7 @@ var $author$project$Onigokko$view = function (model) {
 						$elm$html$Html$button,
 						_List_fromArray(
 							[
-								$elm$html$Html$Events$onClick($author$project$Onigokko$Join)
+								$elm$html$Html$Events$onClick($author$project$Types$Join)
 							]),
 						_List_fromArray(
 							[
@@ -14874,7 +14913,7 @@ var $author$project$Onigokko$view = function (model) {
 				var walls = $author$project$Onigokko$wallView(model.mazeData);
 				var robot = $author$project$Onigokko$playerView(
 					A6(
-						$author$project$Onigokko$Player,
+						$author$project$Types$Player,
 						$elm$core$Maybe$Just(''),
 						'test',
 						1.5,
@@ -14981,26 +15020,6 @@ var $author$project$Onigokko$view = function (model) {
 				}();
 				return _List_fromArray(
 					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$author$project$Onigokko$onKeyDown($author$project$Onigokko$KeyDown)
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$input,
-								_List_fromArray(
-									[
-										$author$project$Onigokko$onKeyDown($author$project$Onigokko$KeyDown),
-										$elm$html$Html$Attributes$autofocus(true)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('ここをタイプ')
-									]))
-							])),
 						$ianmackenzie$elm_3d_scene$Scene3d$sunny(
 						{
 							background: $ianmackenzie$elm_3d_scene$Scene3d$transparentBackground,
