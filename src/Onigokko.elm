@@ -406,12 +406,12 @@ moveForward model =
         d = wallWidth + playerRadius
         p = model.me
         walls = model.mazeData.dual
-        cx = Debug.log "cx" <| round (p.x/3)
-        cy = Debug.log "cy" <| round (p.y/3)
+        cx = Debug.log "cx" <| floor (p.x/3)
+        cy = Debug.log "cy" <| floor (p.y/3)
         bot = Debug.log "south wall" <| ((List.member {x=cx,y=cy,dir=0} walls) || (List.member {x=(cx+1),y=cy,dir=2} walls))
         theta = Debug.log "theta" <| model.me.theta - 2*pi*(toFloat <| floor (model.me.theta/(2*pi)))
         northBorder = if ((List.member {x=cx,y=(cy+1),dir=0} walls) || (List.member {x=(cx+1),y=(cy+1),dir=2} walls)) then
-                          (toFloat (3*cy)) - d
+                          (toFloat (3*(cy+1))) - d
                       else
                           10000
         southBorder = if ((List.member {x=cx,y=cy,dir=0} walls) || (List.member {x=(cx+1),y=cy,dir=2} walls)) then
@@ -423,10 +423,10 @@ moveForward model =
                       else
                           -10000
         eastBorder = if ((List.member {x=(cx+1),y=cy,dir=1} walls) || (List.member {x=(cx+1),y=(cy+1),dir=3} walls)) then
-                          (toFloat (3*cx)) - d
+                          (toFloat (3*(cx+1))) - d
                       else
                           10000
-        newX = if (p.x + 0.15*(cos p.theta)) >= 0 then
+        newX = if (cos p.theta) >= 0 then
                    Basics.min (p.x + 0.15*(cos p.theta)) eastBorder
                else
                    Basics.max (p.x + 0.15*(cos p.theta)) westBorder

@@ -8875,25 +8875,25 @@ var $author$project$Onigokko$moveForward = function (model) {
 	var cy = A2(
 		$elm$core$Debug$log,
 		'cy',
-		$elm$core$Basics$round(p.y / 3));
+		$elm$core$Basics$floor(p.y / 3));
 	var cx = A2(
 		$elm$core$Debug$log,
 		'cx',
-		$elm$core$Basics$round(p.x / 3));
+		$elm$core$Basics$floor(p.x / 3));
 	var eastBorder = (A2(
 		$elm$core$List$member,
 		{dir: 1, x: cx + 1, y: cy},
 		walls) || A2(
 		$elm$core$List$member,
 		{dir: 3, x: cx + 1, y: cy + 1},
-		walls)) ? ((3 * cx) - d) : 10000;
+		walls)) ? ((3 * (cx + 1)) - d) : 10000;
 	var northBorder = (A2(
 		$elm$core$List$member,
 		{dir: 0, x: cx, y: cy + 1},
 		walls) || A2(
 		$elm$core$List$member,
 		{dir: 2, x: cx + 1, y: cy + 1},
-		walls)) ? ((3 * cy) - d) : 10000;
+		walls)) ? ((3 * (cy + 1)) - d) : 10000;
 	var southBorder = (A2(
 		$elm$core$List$member,
 		{dir: 0, x: cx, y: cy},
@@ -8915,7 +8915,7 @@ var $author$project$Onigokko$moveForward = function (model) {
 		$elm$core$List$member,
 		{dir: 3, x: cx, y: cy + 1},
 		walls)) ? ((3 * cx) + d) : (-10000);
-	var newX = ((p.x + (0.15 * $elm$core$Basics$cos(p.theta))) >= 0) ? A2(
+	var newX = ($elm$core$Basics$cos(p.theta) >= 0) ? A2(
 		$elm$core$Basics$min,
 		p.x + (0.15 * $elm$core$Basics$cos(p.theta)),
 		eastBorder) : A2(
