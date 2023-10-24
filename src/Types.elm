@@ -20,15 +20,13 @@ type alias Model = {me: Player
                    ,name: String
                    ,host: Bool
                    ,mazeData: MazeModel
-                       --,vertices : List (Point3d.Point3d Length.Meters WorldCoordinates)
-                       --,prev : List (Point3d.Point3d Length.Meters WorldCoordinates)
-                       ,state : State
-                       ,angle : Float
-                       ,start : Maybe {x:Float, y:Float}
-                       ,hands : List {x:Float, y:Float, z:Float}
-                       ,prevHands : List {x:Float, y:Float, z:Float}
-                       ,onHomePosition : Bool
-                       ,elapsed: Int
+                   ,state : State
+                   ,angle : Float
+                   ,start : Maybe {x:Float, y:Float}
+                   ,hands : List {x:Float, y:Float, z:Float}
+                   ,prevHands : List {x:Float, y:Float, z:Float}
+                   ,onHomePosition : Bool
+                   ,elapsed: Int
                    }
 
 type Msg = OthersLoggedIn Player
@@ -60,7 +58,6 @@ type alias MazeModel = {maze: Maze
                        ,lerwStart: (Int, Int)
                        --,dual: Dict (Int, Int) (List MazeDirection)
                        ,dual: List {x:Int, y:Int, dir:Int}
-
                        }
 
 type MazeDirection = North

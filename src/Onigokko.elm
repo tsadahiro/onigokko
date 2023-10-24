@@ -157,7 +157,7 @@ update msg model =
                              , moved newMe)
                     38 ->
                         let
-                            newMe = moveForward model.me
+                            newMe = moveForward model
                         in
                             ({model| me = newMe}
                             , moved newMe)
@@ -223,7 +223,7 @@ update msg model =
                          Task.perform KeyDown <| Task.succeed 37
                      Just Right ->
                          Task.perform KeyDown <| Task.succeed 39
-                     _ -> case (goForward model.hands) of
+                     _ -> case (handsForward model.hands) of
                               Just Forward ->
                                   Task.perform KeyDown <| Task.succeed 38
                               _ -> Cmd.none
@@ -398,11 +398,42 @@ turnLeft p = {p|theta=p.theta+(3*pi/180)}
 turnRight: Player -> Player
 turnRight p = {p|theta=p.theta-(3*pi/180)}          
 
-moveForward: Player -> Player
-moveForward p =
+moveForward: Model -> Player
+moveForward model =
     let
-        newX = p.x + 0.15*(cos p.theta)
-        newY = p.y + 0.15*(sin p.theta)
+        wallWidth = 0.1
+        playerRadius = 0.5
+        d = wallWidth + playerRadius
+        p = model.me
+        walls = model.mazeData.dual
+        cx = Debug.log "cx" <| round (p.x/3)
+        cy = Debug.log "cy" <| round (p.y/3)
+        bot = Debug.log "south wall" <| ((List.member {x=cx,y=cy,dir=0} walls) || (List.member {x=(cx+1),y=cy,dir=2} walls))
+        theta = Debug.log "theta" <| model.me.theta - 2*pi*(toFloat <| floor (model.me.theta/(2*pi)))
+        northBorder = if ((List.member {x=cx,y=(cy+1),dir=0} walls) || (List.member {x=(cx+1),y=(cy+1),dir=2} walls)) then
+                          (toFloat (3*cy)) - d
+                      else
+                          10000
+        southBorder = if ((List.member {x=cx,y=cy,dir=0} walls) || (List.member {x=(cx+1),y=cy,dir=2} walls)) then
+                          (toFloat (3*cy)) + d
+                      else
+                          -10000
+        westBorder = if ((List.member {x=cx,y=cy,dir=1} walls) || (List.member {x=cx,y=(cy+1),dir=3} walls)) then
+                          (toFloat (3*cx)) + d
+                      else
+                          -10000
+        eastBorder = if ((List.member {x=(cx+1),y=cy,dir=1} walls) || (List.member {x=(cx+1),y=(cy+1),dir=3} walls)) then
+                          (toFloat (3*cx)) - d
+                      else
+                          10000
+        newX = if (p.x + 0.15*(cos p.theta)) >= 0 then
+                   Basics.min (p.x + 0.15*(cos p.theta)) eastBorder
+               else
+                   Basics.max (p.x + 0.15*(cos p.theta)) westBorder
+        newY = if (sin p.theta) >= 0 then
+                   Basics.min (p.y + 0.15*(sin p.theta)) northBorder
+               else
+                   Basics.max (p.y + 0.15*(sin p.theta)) southBorder
     in
         {p| x = newX, y = newY}
 
@@ -424,29 +455,30 @@ wallView mazemodel =
                 , roughness = 0.4 -- varies from 0 (mirror-like) to 1 (matte)
                 }
         wallHeight=0.7
+        wallWidth=0.1
         wallEntity: {x:Int, y:Int, dir:Int} -> Scene3d.Entity coordinates
         wallEntity wall =
             case wall.dir of
                 0 -> Scene3d.block materialBrown -- East
                         <| Block3d.from
-                            (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-0.1) 0)
-                            (Point3d.meters (toFloat ((3*wall.x)+3)) ((toFloat (3*wall.y))+0.1) wallHeight)
+                            (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-wallWidth) 0)
+                            (Point3d.meters (toFloat ((3*wall.x)+3)) ((toFloat (3*wall.y))+wallWidth) wallHeight)
                 2 -> Scene3d.block materialBrown -- West
                      <| Block3d.from
-                         (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-0.1) 0)
-                         (Point3d.meters (toFloat ((3*wall.x)-3)) ((toFloat (3*wall.y))+0.1) wallHeight)
+                         (Point3d.meters (toFloat (3*wall.x)) ((toFloat (3*wall.y))-wallWidth) 0)
+                         (Point3d.meters (toFloat ((3*wall.x)-3)) ((toFloat (3*wall.y))+wallWidth) wallHeight)
                 1 -> Scene3d.block materialBrown -- North
                      <| Block3d.from
-                         (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
-                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))+3) wallHeight)
+                         (Point3d.meters ((toFloat (3*wall.x))-wallWidth) ((toFloat (3*wall.y))) 0)
+                         (Point3d.meters ((toFloat (3*wall.x))+wallWidth) ((toFloat (3*wall.y))+3) wallHeight)
                 3 -> Scene3d.block materialBrown -- South
                      <| Block3d.from
-                         (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
-                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-3) wallHeight)
+                         (Point3d.meters ((toFloat (3*wall.x))-wallWidth) ((toFloat (3*wall.y))) 0)
+                         (Point3d.meters ((toFloat (3*wall.x))+wallWidth) ((toFloat (3*wall.y))-3) wallHeight)
                 _ -> Scene3d.block materialBrown -- South
                      <| Block3d.from
-                         (Point3d.meters ((toFloat (3*wall.x))-0.1) ((toFloat (3*wall.y))) 0)
-                         (Point3d.meters ((toFloat (3*wall.x))+0.1) ((toFloat (3*wall.y))-1) wallHeight)
+                         (Point3d.meters ((toFloat (3*wall.x))-wallWidth) ((toFloat (3*wall.y))) 0)
+                         (Point3d.meters ((toFloat (3*wall.x))+wallWidth) ((toFloat (3*wall.y))-1) wallHeight)
     in
         List.map wallEntity mazemodel.dual
 

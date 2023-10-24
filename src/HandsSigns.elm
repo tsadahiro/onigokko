@@ -45,6 +45,31 @@ handsDirection handsData =
                 else
                     Nothing
 
+
+handsForward : List {x:Float, y:Float, z:Float} -> Maybe Direction
+handsForward handsData =
+    let
+        getPosition idx = Maybe.withDefault {x=0,y=0,z=0}<|
+                          List.head <| List.drop idx handsData
+        finger idx = List.take 4 <| (if idx <5 then
+                                         List.drop (1+idx*4) handsData
+                                     else
+                                         List.drop (2+idx*4) handsData
+                                    )
+        fVectors1 = List.map fingerVector <| List.map (\fidx -> finger fidx )[1,2,3,4]
+        fVectors2 = List.map fingerVector <| List.map (\fidx -> finger fidx )[6,7,8,9]
+        meanAngle1 = (List.sum <| List.map (\fv -> angle {x=0,y=0,z=1} fv) fVectors1)/4
+        meanAngle2 = (List.sum <| List.map (\fv -> angle {x=0,y=0,z=1} fv) fVectors2)/4
+    in
+        if not (pinto handsData) then
+            Nothing
+        else
+            if ((Basics.min meanAngle1 meanAngle2)) < (4.2*pi/10) &&
+                (abs (meanAngle1 - meanAngle2)) < (pi/4) then
+                Just Forward
+            else
+                Nothing
+                        
 goForward : List {x:Float, y:Float, z:Float} -> Maybe Direction
 goForward handsData =
     let

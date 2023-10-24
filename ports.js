@@ -123,7 +123,7 @@ const token = new SkyWayAuthToken({
 	    type: 'p2p',
 	    name: room
 	});
-	if (channel.members.length >= 4) {
+	if (channel.members.length >= 10) {
 	    return;
 	}
 	const me = await channel.join();

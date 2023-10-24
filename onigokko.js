@@ -8410,7 +8410,24 @@ var $author$project$Onigokko$dual = function (primal) {
 			initialEdges,
 			primal));
 };
-var $author$project$Types$Forward = {$: 'Forward'};
+var $author$project$Types$Left = {$: 'Left'};
+var $author$project$Types$Right = {$: 'Right'};
+var $elm$core$Basics$acos = _Basics_acos;
+var $author$project$HandsSigns$innerProd = F2(
+	function (v, w) {
+		return ((v.x * w.x) + (v.y * w.y)) + (v.z * w.z);
+	});
+var $elm$core$Basics$pow = _Basics_pow;
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$HandsSigns$norm = function (vec) {
+	return $elm$core$Basics$sqrt(
+		(A2($elm$core$Basics$pow, vec.x, 2) + A2($elm$core$Basics$pow, vec.y, 2)) + A2($elm$core$Basics$pow, vec.z, 2));
+};
+var $author$project$HandsSigns$angle = F2(
+	function (v, w) {
+		return $elm$core$Basics$acos(
+			A2($author$project$HandsSigns$innerProd, v, w) / ($author$project$HandsSigns$norm(v) * $author$project$HandsSigns$norm(w)));
+	});
 var $elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -8432,17 +8449,34 @@ var $elm$core$List$drop = F2(
 			}
 		}
 	});
-var $elm$core$Basics$acos = _Basics_acos;
-var $author$project$HandsSigns$innerProd = F2(
-	function (v, w) {
-		return ((v.x * w.x) + (v.y * w.y)) + (v.z * w.z);
-	});
-var $elm$core$Basics$pow = _Basics_pow;
-var $elm$core$Basics$sqrt = _Basics_sqrt;
-var $author$project$HandsSigns$norm = function (vec) {
-	return $elm$core$Basics$sqrt(
-		(A2($elm$core$Basics$pow, vec.x, 2) + A2($elm$core$Basics$pow, vec.y, 2)) + A2($elm$core$Basics$pow, vec.z, 2));
+var $author$project$HandsSigns$fingerVector = function (finger) {
+	var third = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 2, finger)));
+	var second = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 1, finger)));
+	var fourth = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 3, finger)));
+	var first = A2(
+		$elm$core$Maybe$withDefault,
+		{x: 0, y: 0, z: 0},
+		$elm$core$List$head(finger));
+	var vec = {x: 100 * (first.x - fourth.x), y: 100 * (first.y - fourth.y), z: 100 * (first.z - fourth.z)};
+	return vec;
 };
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$HandsSigns$fingerAngle = function (finger) {
 	var third = A2(
 		$elm$core$Maybe$withDefault,
@@ -8468,21 +8502,6 @@ var $author$project$HandsSigns$fingerAngle = function (finger) {
 	return $elm$core$Basics$acos(
 		A2($author$project$HandsSigns$innerProd, top, bot) / ($author$project$HandsSigns$norm(top) * $author$project$HandsSigns$norm(bot)));
 };
-var $elm$core$Basics$min = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) < 0) ? x : y;
-	});
-var $elm$core$List$minimum = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(
-			A3($elm$core$List$foldl, $elm$core$Basics$min, x, xs));
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$List$maximum = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -8649,66 +8668,6 @@ var $author$project$HandsSigns$pinto = function (handsData) {
 		$elm$core$List$maximum(angles));
 	return ($elm$core$List$length(handsData) === 42) && (_Utils_cmp(maxAngle, $elm$core$Basics$pi / 7) < 0);
 };
-var $author$project$HandsSigns$goForward = function (handsData) {
-	var getPosition = function (idx) {
-		return A2(
-			$elm$core$Maybe$withDefault,
-			{x: 0, y: 0, z: 0},
-			$elm$core$List$head(
-				A2($elm$core$List$drop, idx, handsData)));
-	};
-	var finger = function (idx) {
-		return A2(
-			$elm$core$List$take,
-			4,
-			(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), handsData) : A2($elm$core$List$drop, 2 + (idx * 4), handsData));
-	};
-	var oyaAngles = A2(
-		$elm$core$List$map,
-		$author$project$HandsSigns$fingerAngle,
-		A2(
-			$elm$core$List$map,
-			function (fidx) {
-				return finger(fidx);
-			},
-			_List_fromArray(
-				[0, 5])));
-	var minOyaAngle = A2(
-		$elm$core$Maybe$withDefault,
-		0,
-		$elm$core$List$minimum(oyaAngles));
-	return (!$author$project$HandsSigns$pinto(handsData)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(minOyaAngle, (3 / 5) * $elm$core$Basics$pi) > 0) ? $elm$core$Maybe$Just($author$project$Types$Forward) : $elm$core$Maybe$Nothing);
-};
-var $author$project$Types$Left = {$: 'Left'};
-var $author$project$Types$Right = {$: 'Right'};
-var $author$project$HandsSigns$angle = F2(
-	function (v, w) {
-		return $elm$core$Basics$acos(
-			A2($author$project$HandsSigns$innerProd, v, w) / ($author$project$HandsSigns$norm(v) * $author$project$HandsSigns$norm(w)));
-	});
-var $author$project$HandsSigns$fingerVector = function (finger) {
-	var third = A2(
-		$elm$core$Maybe$withDefault,
-		{x: 0, y: 0, z: 0},
-		$elm$core$List$head(
-			A2($elm$core$List$drop, 2, finger)));
-	var second = A2(
-		$elm$core$Maybe$withDefault,
-		{x: 0, y: 0, z: 0},
-		$elm$core$List$head(
-			A2($elm$core$List$drop, 1, finger)));
-	var fourth = A2(
-		$elm$core$Maybe$withDefault,
-		{x: 0, y: 0, z: 0},
-		$elm$core$List$head(
-			A2($elm$core$List$drop, 3, finger)));
-	var first = A2(
-		$elm$core$Maybe$withDefault,
-		{x: 0, y: 0, z: 0},
-		$elm$core$List$head(finger));
-	var vec = {x: 100 * (first.x - fourth.x), y: 100 * (first.y - fourth.y), z: 100 * (first.z - fourth.z)};
-	return vec;
-};
 var $elm$core$List$sum = function (numbers) {
 	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
 };
@@ -8776,6 +8735,67 @@ var $author$project$HandsSigns$handsDirection = function (handsData) {
 		$elm$core$Basics$abs(meanAngle1 - meanAngle2),
 		$elm$core$Basics$pi / 4) > 0)) ? $elm$core$Maybe$Just($author$project$Types$Left) : $elm$core$Maybe$Nothing));
 };
+var $author$project$Types$Forward = {$: 'Forward'};
+var $author$project$HandsSigns$handsForward = function (handsData) {
+	var getPosition = function (idx) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			{x: 0, y: 0, z: 0},
+			$elm$core$List$head(
+				A2($elm$core$List$drop, idx, handsData)));
+	};
+	var finger = function (idx) {
+		return A2(
+			$elm$core$List$take,
+			4,
+			(idx < 5) ? A2($elm$core$List$drop, 1 + (idx * 4), handsData) : A2($elm$core$List$drop, 2 + (idx * 4), handsData));
+	};
+	var fVectors2 = A2(
+		$elm$core$List$map,
+		$author$project$HandsSigns$fingerVector,
+		A2(
+			$elm$core$List$map,
+			function (fidx) {
+				return finger(fidx);
+			},
+			_List_fromArray(
+				[6, 7, 8, 9])));
+	var meanAngle2 = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (fv) {
+				return A2(
+					$author$project$HandsSigns$angle,
+					{x: 0, y: 0, z: 1},
+					fv);
+			},
+			fVectors2)) / 4;
+	var fVectors1 = A2(
+		$elm$core$List$map,
+		$author$project$HandsSigns$fingerVector,
+		A2(
+			$elm$core$List$map,
+			function (fidx) {
+				return finger(fidx);
+			},
+			_List_fromArray(
+				[1, 2, 3, 4])));
+	var meanAngle1 = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (fv) {
+				return A2(
+					$author$project$HandsSigns$angle,
+					{x: 0, y: 0, z: 1},
+					fv);
+			},
+			fVectors1)) / 4;
+	return (!$author$project$HandsSigns$pinto(handsData)) ? $elm$core$Maybe$Nothing : (((_Utils_cmp(
+		A2($elm$core$Basics$min, meanAngle1, meanAngle2),
+		(4.2 * $elm$core$Basics$pi) / 10) < 0) && (_Utils_cmp(
+		$elm$core$Basics$abs(meanAngle1 - meanAngle2),
+		$elm$core$Basics$pi / 4) < 0)) ? $elm$core$Maybe$Just($author$project$Types$Forward) : $elm$core$Maybe$Nothing);
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Onigokko$join = _Platform_outgoingPort('join', $elm$json$Json$Encode$string);
 var $elm$core$Debug$log = _Debug_log;
@@ -8841,9 +8861,77 @@ var $author$project$Onigokko$moveBackward = function (p) {
 		p,
 		{x: newX, y: newY});
 };
-var $author$project$Onigokko$moveForward = function (p) {
-	var newY = p.y + (0.15 * $elm$core$Basics$sin(p.theta));
-	var newX = p.x + (0.15 * $elm$core$Basics$cos(p.theta));
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$Onigokko$moveForward = function (model) {
+	var walls = model.mazeData.dual;
+	var wallWidth = 0.1;
+	var theta = A2(
+		$elm$core$Debug$log,
+		'theta',
+		model.me.theta - ((2 * $elm$core$Basics$pi) * $elm$core$Basics$floor(model.me.theta / (2 * $elm$core$Basics$pi))));
+	var playerRadius = 0.5;
+	var p = model.me;
+	var d = wallWidth + playerRadius;
+	var cy = A2(
+		$elm$core$Debug$log,
+		'cy',
+		$elm$core$Basics$round(p.y / 3));
+	var cx = A2(
+		$elm$core$Debug$log,
+		'cx',
+		$elm$core$Basics$round(p.x / 3));
+	var eastBorder = (A2(
+		$elm$core$List$member,
+		{dir: 1, x: cx + 1, y: cy},
+		walls) || A2(
+		$elm$core$List$member,
+		{dir: 3, x: cx + 1, y: cy + 1},
+		walls)) ? ((3 * cx) - d) : 10000;
+	var northBorder = (A2(
+		$elm$core$List$member,
+		{dir: 0, x: cx, y: cy + 1},
+		walls) || A2(
+		$elm$core$List$member,
+		{dir: 2, x: cx + 1, y: cy + 1},
+		walls)) ? ((3 * cy) - d) : 10000;
+	var southBorder = (A2(
+		$elm$core$List$member,
+		{dir: 0, x: cx, y: cy},
+		walls) || A2(
+		$elm$core$List$member,
+		{dir: 2, x: cx + 1, y: cy},
+		walls)) ? ((3 * cy) + d) : (-10000);
+	var newY = ($elm$core$Basics$sin(p.theta) >= 0) ? A2(
+		$elm$core$Basics$min,
+		p.y + (0.15 * $elm$core$Basics$sin(p.theta)),
+		northBorder) : A2(
+		$elm$core$Basics$max,
+		p.y + (0.15 * $elm$core$Basics$sin(p.theta)),
+		southBorder);
+	var westBorder = (A2(
+		$elm$core$List$member,
+		{dir: 1, x: cx, y: cy},
+		walls) || A2(
+		$elm$core$List$member,
+		{dir: 3, x: cx, y: cy + 1},
+		walls)) ? ((3 * cx) + d) : (-10000);
+	var newX = ((p.x + (0.15 * $elm$core$Basics$cos(p.theta))) >= 0) ? A2(
+		$elm$core$Basics$min,
+		p.x + (0.15 * $elm$core$Basics$cos(p.theta)),
+		eastBorder) : A2(
+		$elm$core$Basics$max,
+		p.x + (0.15 * $elm$core$Basics$cos(p.theta)),
+		westBorder);
+	var bot = A2(
+		$elm$core$Debug$log,
+		'south wall',
+		A2(
+			$elm$core$List$member,
+			{dir: 0, x: cx, y: cy},
+			walls) || A2(
+			$elm$core$List$member,
+			{dir: 2, x: cx + 1, y: cy},
+			walls));
 	return _Utils_update(
 		p,
 		{x: newX, y: newY});
@@ -9105,7 +9193,7 @@ var $author$project$Onigokko$update = F2(
 								{me: newMe}),
 							$author$project$Onigokko$moved(newMe));
 					case 38:
-						var newMe = $author$project$Onigokko$moveForward(model.me);
+						var newMe = $author$project$Onigokko$moveForward(model);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -9239,7 +9327,7 @@ var $author$project$Onigokko$update = F2(
 								break _v2$2;
 							}
 						}
-						var _v5 = $author$project$HandsSigns$goForward(model.hands);
+						var _v5 = $author$project$HandsSigns$handsForward(model.hands);
 						if ((_v5.$ === 'Just') && (_v5.a.$ === 'Forward')) {
 							var _v6 = _v5.a;
 							return A2(
@@ -9297,7 +9385,6 @@ var $ianmackenzie$elm_geometry$Axis3d$direction = function (_v0) {
 	var axis = _v0.a;
 	return axis.direction;
 };
-var $elm$core$Basics$ge = _Utils_ge;
 var $ianmackenzie$elm_units$Quantity$greaterThanOrEqualTo = F2(
 	function (_v0, _v1) {
 		var y = _v0.a;
@@ -14794,6 +14881,7 @@ var $ianmackenzie$elm_3d_scene$Scene3d$transparentBackground = $ianmackenzie$elm
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $author$project$Onigokko$wallView = function (mazemodel) {
+	var wallWidth = 0.1;
 	var wallHeight = 0.7;
 	var materialBrown = $ianmackenzie$elm_3d_scene$Scene3d$Material$nonmetal(
 		{baseColor: $avh4$elm_color$Color$brown, roughness: 0.4});
@@ -14806,40 +14894,40 @@ var $author$project$Onigokko$wallView = function (mazemodel) {
 					materialBrown,
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
-						A3($ianmackenzie$elm_geometry$Point3d$meters, 3 * wall.x, (3 * wall.y) - 0.1, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 3, (3 * wall.y) + 0.1, wallHeight)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, 3 * wall.x, (3 * wall.y) - wallWidth, 0),
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 3, (3 * wall.y) + wallWidth, wallHeight)));
 			case 2:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
 					materialBrown,
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
-						A3($ianmackenzie$elm_geometry$Point3d$meters, 3 * wall.x, (3 * wall.y) - 0.1, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 3, (3 * wall.y) + 0.1, wallHeight)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, 3 * wall.x, (3 * wall.y) - wallWidth, 0),
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 3, (3 * wall.y) + wallWidth, wallHeight)));
 			case 1:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
 					materialBrown,
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 0.1, 3 * wall.y, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) + 3, wallHeight)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - wallWidth, 3 * wall.y, 0),
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + wallWidth, (3 * wall.y) + 3, wallHeight)));
 			case 3:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
 					materialBrown,
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 0.1, 3 * wall.y, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) - 3, wallHeight)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - wallWidth, 3 * wall.y, 0),
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + wallWidth, (3 * wall.y) - 3, wallHeight)));
 			default:
 				return A2(
 					$ianmackenzie$elm_3d_scene$Scene3d$block,
 					materialBrown,
 					A2(
 						$ianmackenzie$elm_geometry$Block3d$from,
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - 0.1, 3 * wall.y, 0),
-						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + 0.1, (3 * wall.y) - 1, wallHeight)));
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) - wallWidth, 3 * wall.y, 0),
+						A3($ianmackenzie$elm_geometry$Point3d$meters, (3 * wall.x) + wallWidth, (3 * wall.y) - 1, wallHeight)));
 		}
 	};
 	return A2($elm$core$List$map, wallEntity, mazemodel.dual);
